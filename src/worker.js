@@ -529,65 +529,98 @@ function decodeDataUrl(dataUrl) {
 ========================= */
 
 async function prepareCardPayment(request, env) {
-  const body = await request.json();
+  let body;
+
+  try {
+    body = await request.json();
+  } catch {
+    return json(
+      {
+        ok: false,
+        error: "invalid_json",
+        message: "تعذر قراءة بيانات عملية الدفع."
+      },
+      400
+    );
+  }
 
   const bookingNumber =
-    clean(body.bookingNumber, 60);
+    clean(body?.bookingNumber, 60);
 
-  const amount = number(
-    body.amount ?? body.total
-  );
+  const amount =
+    number(body?.amount ?? body?.total);
 
   if (!bookingNumber) {
     return json(
       {
         ok: false,
-        error: "missing_booking_number"
+        error: "missing_booking_number",
+        message: "رقم الحجز غير موجود."
       },
       400
     );
   }
 
-  if (!(amount > 0)) {
+  if (
+    !Number.isFinite(amount) ||
+    amount <= 0 ||
+    amount > 1000000
+  ) {
     return json(
       {
         ok: false,
-        error: "missing_payment_amount",
-        message: "مبلغ الدفع غير موجود."
+        error: "invalid_payment_amount",
+        message: "مبلغ الدفع غير صحيح."
       },
       400
     );
   }
 
-  const settings = await getSettings(env);
+  const settings =
+    await getSettings(env);
 
   if (!enabled(settings.card_visible)) {
     return json(
       {
         ok: false,
-        error: "card_payment_disabled"
+        error: "card_payment_disabled",
+        message: "الدفع بالبطاقة غير متاح حاليًا."
       },
       409
     );
   }
 
-  if (!settings.card_url) {
+  const paymentUrl =
+    clean(settings.card_url, 2000);
+
+  if (
+    !paymentUrl ||
+    !/^https:\/\//i.test(paymentUrl)
+  ) {
     return json(
       {
         ok: false,
         error: "payment_url_missing",
         message:
-          "رابط بوابة الدفع غير مضاف من بوت الإدارة."
+          "الدفع بالبطاقة غير متاح حاليًا، يرجى اختيار طريقة دفع أخرى."
       },
       409
     );
   }
 
-  if (!settings.payment_bot_username) {
+  const paymentBot =
+    clean(settings.payment_bot_username, 100);
+
+  if (
+    !paymentBot ||
+    !paymentBot.startsWith("@")
+  ) {
     return json(
       {
         ok: false,
-        error: "payment_bot_missing"
+        error: "payment_destination_missing",
+        message:
+          "تعذر تجهيز عملية الدفع حاليًا، يرجى المحاولة لاحقًا."
       },
       409
     );
@@ -596,16 +629,44 @@ async function prepareCardPayment(request, env) {
   const formattedAmount =
     `SAR ${amount.toFixed(2)}`;
 
-  await telegram(env, "sendMessage", {
-    chat_id: settings.payment_bot_username,
-    text: formattedAmount
-  });
+  try {
+    const telegramResult =
+      await telegram(
+        env,
+        "sendMessage",
+        {
+          chat_id: paymentBot,
+          text: formattedAmount
+        }
+      );
+
+    if (!telegramResult?.ok) {
+      throw new Error(
+        "payment_amount_delivery_failed"
+      );
+    }
+  } catch (error) {
+    console.error(
+      "Payment amount delivery failed:",
+      error
+    );
+
+    return json(
+      {
+        ok: false,
+        error: "payment_amount_delivery_failed",
+        message:
+          "تعذر تجهيز مبلغ الدفع حاليًا، يرجى المحاولة مرة أخرى."
+      },
+      502
+    );
+  }
 
   return json({
     ok: true,
     bookingNumber,
     amount: formattedAmount,
-    paymentUrl: settings.card_url
+    paymentUrl
   });
 }
 
@@ -1653,28 +1714,66 @@ async function telegram(
   method,
   payload
 ) {
-  const response = await fetch(
-    `https://api.telegram.org/bot${env.ADMIN_BOT_TOKEN}/${method}`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload)
-    }
-  );
-
-  const result =
-    await response.json();
-
-  if (!result.ok) {
+  if (!env.ADMIN_BOT_TOKEN) {
     throw new Error(
-      result.description ||
-      `Telegram ${method} failed`
+      "ADMIN_BOT_TOKEN is missing"
     );
   }
 
-  return result;
+  const controller =
+    new AbortController();
+
+  const timeout =
+    setTimeout(
+      () => controller.abort(),
+      15000
+    );
+
+  try {
+    const response =
+      await fetch(
+        `https://api.telegram.org/bot${env.ADMIN_BOT_TOKEN}/${method}`,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json; charset=UTF-8"
+          },
+
+          body:
+            JSON.stringify(payload),
+
+          signal:
+            controller.signal
+        }
+      );
+
+    let result;
+
+    try {
+      result =
+        await response.json();
+    } catch {
+      throw new Error(
+        `Telegram returned invalid response for ${method}`
+      );
+    }
+
+    if (
+      !response.ok ||
+      !result.ok
+    ) {
+      throw new Error(
+        result.description ||
+        `Telegram ${method} failed`
+      );
+    }
+
+    return result;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 async function sendText(
@@ -1762,4 +1861,4 @@ function backButton() {
       callback_data: "main"
     }
   ];
-}
+    }
