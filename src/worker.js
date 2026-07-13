@@ -43,17 +43,23 @@ const BUTTONS = {
   BANK_WHATSAPP: "رقم واتساب التحويل",
   BANK_MESSAGE: "نص رسالة التحويل",
 
-  SERVICE_ADD: "إضافة خدمة",
-  SERVICE_LIST: "عرض الخدمات",
-  SERVICE_EDIT: "تعديل خدمة",
-  SERVICE_TOGGLE: "إظهار أو إخفاء خدمة",
-  SERVICE_DELETE: "حذف خدمة",
+  SERVICE_ADD: "إضافة خدمة جديدة",
+  SERVICE_NAME: "تعديل اسم الخدمة",
+  SERVICE_DESCRIPTION: "تعديل وصف الخدمة",
+  SERVICE_PRICE: "تعديل سعر الخدمة",
+  SERVICE_TOGGLE: "إظهار أو إخفاء الخدمة",
+  SERVICE_DELETE: "حذف الخدمة",
+  SERVICE_DELETE_CONFIRM: "تأكيد حذف الخدمة",
 
-  PERIOD_ADD_SEASON: "إضافة موسم",
-  PERIOD_ADD_OCCASION: "إضافة مناسبة",
-  PERIOD_LIST: "عرض الفترات",
-  PERIOD_TOGGLE: "إظهار أو إخفاء فترة",
-  PERIOD_DELETE: "حذف فترة"
+  PERIOD_ADD_SEASON: "إضافة موسم جديد",
+  PERIOD_ADD_OCCASION: "إضافة مناسبة جديدة",
+  PERIOD_NAME: "تعديل اسم الفترة",
+  PERIOD_START: "تعديل تاريخ البداية",
+  PERIOD_END: "تعديل تاريخ النهاية",
+  PERIOD_PRICE: "تعديل سعر الفترة",
+  PERIOD_TOGGLE: "إظهار أو إخفاء الفترة",
+  PERIOD_DELETE: "حذف الفترة",
+  PERIOD_DELETE_CONFIRM: "تأكيد حذف الفترة"
 };
 
 const DEFAULT_SETTINGS = {
@@ -255,7 +261,7 @@ export default {
 };
 
 /* =========================
-   إنشاء الجداول
+   قاعدة البيانات
 ========================= */
 
 async function ensureDatabase(env) {
@@ -294,6 +300,8 @@ async function ensureDatabase(env) {
         price REAL NOT NULL DEFAULT 0,
         visible INTEGER NOT NULL DEFAULT 1,
         created_at TEXT NOT NULL
+          DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT NOT NULL
           DEFAULT CURRENT_TIMESTAMP
       )
     `),
@@ -308,6 +316,16 @@ async function ensureDatabase(env) {
       )
     `)
   ]);
+
+  try {
+    await env.DB.prepare(`
+      ALTER TABLE periods
+      ADD COLUMN updated_at TEXT
+      NOT NULL DEFAULT CURRENT_TIMESTAMP
+    `).run();
+  } catch {
+    // العمود موجود مسبقًا
+  }
 
   for (
     const [key, value]
@@ -407,7 +425,7 @@ async function saveSetting(
 }
 
 /* =========================
-   إعدادات الموقع العامة
+   إعدادات الموقع
 ========================= */
 
 async function getPublicConfig(env) {
@@ -439,7 +457,7 @@ async function getPublicConfig(env) {
         visible
       FROM periods
       WHERE visible = 1
-      ORDER BY start_date ASC
+      ORDER BY start_date ASC, id ASC
     `).all();
 
   const occasions = [];
@@ -774,7 +792,7 @@ async function sendInvoicePhoto(
           image.mimeType
       }
     ),
-    `invoice-${bookingNumber}.png`
+    `invoice-${bookingNumber}.jpg`
   );
 
   const response =
@@ -833,7 +851,7 @@ function decodeDataUrl(dataUrl) {
 }
 
 /* =========================
-   تجهيز دفع البطاقة
+   الدفع بالبطاقة
 ========================= */
 
 async function prepareCardPayment(
@@ -953,7 +971,7 @@ async function prepareCardPayment(
 }
 
 /* =========================
-   ربط Webhook
+   Webhook
 ========================= */
 
 async function setupWebhook(
@@ -1040,7 +1058,7 @@ async function handleTelegramWebhook(
 }
 
 /* =========================
-   معالجة رسائل الإدارة
+   معالجة رسائل البوت
 ========================= */
 
 async function handleMessage(
@@ -1087,7 +1105,7 @@ async function handleMessage(
   if (
     text === BUTTONS.CANCEL
   ) {
-    const oldState =
+    const state =
       await getState(
         env,
         chatId
@@ -1098,11 +1116,10 @@ async function handleMessage(
       chatId
     );
 
-    await returnToMenu(
+    await returnToPreviousMenu(
       env,
       chatId,
-      oldState?.payload
-        ?.returnMenu
+      state?.payload
     );
 
     return;
@@ -1111,7 +1128,7 @@ async function handleMessage(
   if (
     text === BUTTONS.BACK
   ) {
-    const oldState =
+    const state =
       await getState(
         env,
         chatId
@@ -1122,41 +1139,88 @@ async function handleMessage(
       chatId
     );
 
-    await returnToMenu(
+    await returnToPreviousMenu(
       env,
       chatId,
-      oldState?.payload
-        ?.returnMenu
+      state?.payload
+    );
+
+    return;
+  }
+
+  const currentState =
+    await getState(
+      env,
+      chatId
+    );
+
+  if (
+    currentState &&
+    isInputState(
+      currentState.state
+    )
+  ) {
+    await processState(
+      env,
+      chatId,
+      text,
+      currentState
     );
 
     return;
   }
 
   if (
-    await handleMenuButton(
+    await handleStaticButton(
       env,
       chatId,
-      text
+      text,
+      currentState
     )
   ) {
     return;
   }
 
-  const state =
-    await getState(
-      env,
-      chatId
-    );
+  if (
+    currentState?.state ===
+      "services_menu"
+  ) {
+    const service =
+      await findServiceByButtonText(
+        env,
+        text
+      );
 
-  if (state) {
-    await processState(
-      env,
-      chatId,
-      text,
-      state
-    );
+    if (service) {
+      await sendServiceDetails(
+        env,
+        chatId,
+        service.id
+      );
 
-    return;
+      return;
+    }
+  }
+
+  if (
+    currentState?.state ===
+      "periods_menu"
+  ) {
+    const period =
+      await findPeriodByButtonText(
+        env,
+        text
+      );
+
+    if (period) {
+      await sendPeriodDetails(
+        env,
+        chatId,
+        period.id
+      );
+
+      return;
+    }
   }
 
   await sendMainMenu(
@@ -1165,10 +1229,35 @@ async function handleMessage(
   );
 }
 
-async function handleMenuButton(
+function isInputState(state) {
+  return new Set([
+    "edit_setting",
+
+    "add_service_name",
+    "add_service_description",
+    "add_service_price",
+
+    "edit_service_name",
+    "edit_service_description",
+    "edit_service_price",
+
+    "add_period_name",
+    "add_period_start",
+    "add_period_end",
+    "add_period_price",
+
+    "edit_period_name",
+    "edit_period_start",
+    "edit_period_end",
+    "edit_period_price"
+  ]).has(state);
+}
+
+async function handleStaticButton(
   env,
   chatId,
-  text
+  text,
+  currentState
 ) {
   switch (text) {
     case BUTTONS.SITE:
@@ -1270,7 +1359,7 @@ async function handleMenuButton(
         env,
         chatId,
         "thursday_price",
-        "أرسل سعر يوم الخميس:",
+        "أرسل سعر الخميس:",
         "prices"
       );
       return true;
@@ -1280,7 +1369,7 @@ async function handleMenuButton(
         env,
         chatId,
         "friday_price",
-        "أرسل سعر يوم الجمعة:",
+        "أرسل سعر الجمعة:",
         "prices"
       );
       return true;
@@ -1356,7 +1445,7 @@ async function handleMenuButton(
         env,
         chatId,
         "card_url",
-        "أرسل رابط بوابة الدفع كاملًا ويبدأ بـ https://",
+        "أرسل رابط بوابة الدفع كاملًا، ويجب أن يبدأ بـ https://",
         "payment"
       );
       return true;
@@ -1396,7 +1485,7 @@ async function handleMenuButton(
         env,
         chatId,
         "bank_name",
-        "أرسل اسم طريقة التحويل البنكي:",
+        "أرسل اسم التحويل البنكي:",
         "payment"
       );
       return true;
@@ -1416,7 +1505,7 @@ async function handleMenuButton(
         env,
         chatId,
         "bank_whatsapp",
-        "أرسل رقم واتساب مع رمز الدولة، بدون + أو مسافات.",
+        "أرسل رقم واتساب مع رمز الدولة، دون علامة + أو مسافات.",
         "payment"
       );
       return true;
@@ -1426,131 +1515,324 @@ async function handleMenuButton(
         env,
         chatId,
         "bank_message",
-        "أرسل رسالة التحويل الجديدة. يمكنك استخدام {booking_number} و {amount}.",
+        "أرسل نص رسالة التحويل. يمكنك استخدام {booking_number} و {amount}.",
         "payment"
       );
       return true;
 
     case BUTTONS.SERVICE_ADD:
-      await beginState(
-        env,
-        chatId,
-        "add_service",
-        {
-          returnMenu:
-            "services"
-        },
-        "أرسل بيانات الخدمة بهذا الشكل:\n\nالاسم | الوصف | السعر\n\nمثال:\nتدفئة المسبح | تشغيل التدفئة خلال الحجز | 100"
-      );
-      return true;
-
-    case BUTTONS.SERVICE_LIST:
-      await sendServicesList(
+      await startAddService(
         env,
         chatId
       );
       return true;
 
-    case BUTTONS.SERVICE_EDIT:
-      await beginState(
-        env,
-        chatId,
-        "ask_edit_service_id",
-        {
-          returnMenu:
-            "services"
-        },
-        "أرسل رقم الخدمة التي تريد تعديلها."
-      );
-      return true;
+    case BUTTONS.SERVICE_NAME:
+      if (
+        currentState?.state ===
+          "service_details"
+      ) {
+        await beginServiceFieldEdit(
+          env,
+          chatId,
+          currentState.payload.serviceId,
+          "edit_service_name",
+          "أرسل اسم الخدمة الجديد:"
+        );
+
+        return true;
+      }
+      return false;
+
+    case BUTTONS.SERVICE_DESCRIPTION:
+      if (
+        currentState?.state ===
+          "service_details"
+      ) {
+        await beginServiceFieldEdit(
+          env,
+          chatId,
+          currentState.payload.serviceId,
+          "edit_service_description",
+          "أرسل وصف الخدمة الجديد:"
+        );
+
+        return true;
+      }
+      return false;
+
+    case BUTTONS.SERVICE_PRICE:
+      if (
+        currentState?.state ===
+          "service_details"
+      ) {
+        await beginServiceFieldEdit(
+          env,
+          chatId,
+          currentState.payload.serviceId,
+          "edit_service_price",
+          "أرسل سعر الخدمة الجديد:"
+        );
+
+        return true;
+      }
+      return false;
 
     case BUTTONS.SERVICE_TOGGLE:
-      await beginState(
-        env,
-        chatId,
-        "toggle_service",
-        {
-          returnMenu:
-            "services"
-        },
-        "أرسل رقم الخدمة التي تريد إظهارها أو إخفاءها."
-      );
-      return true;
+      if (
+        currentState?.state ===
+          "service_details"
+      ) {
+        await toggleService(
+          env,
+          currentState.payload.serviceId
+        );
+
+        await sendServiceDetails(
+          env,
+          chatId,
+          currentState.payload.serviceId
+        );
+
+        return true;
+      }
+      return false;
 
     case BUTTONS.SERVICE_DELETE:
-      await beginState(
-        env,
-        chatId,
-        "delete_service",
-        {
-          returnMenu:
-            "services"
-        },
-        "أرسل رقم الخدمة التي تريد حذفها."
-      );
-      return true;
+      if (
+        currentState?.state ===
+          "service_details"
+      ) {
+        await setState(
+          env,
+          chatId,
+          "service_delete_confirm",
+          {
+            serviceId:
+              currentState.payload.serviceId,
+            returnMenu:
+              "service_details"
+          }
+        );
+
+        await sendMessage(
+          env,
+          chatId,
+          "هل أنت متأكد من حذف هذه الخدمة نهائيًا؟",
+          replyKeyboard([
+            [
+              BUTTONS.SERVICE_DELETE_CONFIRM
+            ],
+            [
+              BUTTONS.CANCEL
+            ]
+          ])
+        );
+
+        return true;
+      }
+      return false;
+
+    case BUTTONS.SERVICE_DELETE_CONFIRM:
+      if (
+        currentState?.state ===
+          "service_delete_confirm"
+      ) {
+        await deleteService(
+          env,
+          currentState.payload.serviceId
+        );
+
+        await clearState(
+          env,
+          chatId
+        );
+
+        await sendMessage(
+          env,
+          chatId,
+          "✅ تم حذف الخدمة.",
+          mainKeyboard()
+        );
+
+        await sendServicesMenu(
+          env,
+          chatId
+        );
+
+        return true;
+      }
+      return false;
 
     case BUTTONS.PERIOD_ADD_SEASON:
-      await beginState(
+      await startAddPeriod(
         env,
         chatId,
-        "add_period",
-        {
-          type: "season",
-          returnMenu:
-            "periods"
-        },
-        "أرسل بيانات الموسم:\n\nالاسم | تاريخ البداية | تاريخ النهاية | السعر\n\nمثال:\nموسم الصيف | 2026-07-15 | 2026-08-31 | 1000"
+        "season"
       );
       return true;
 
     case BUTTONS.PERIOD_ADD_OCCASION:
-      await beginState(
+      await startAddPeriod(
         env,
         chatId,
-        "add_period",
-        {
-          type:
-            "occasion",
-          returnMenu:
-            "periods"
-        },
-        "أرسل بيانات المناسبة:\n\nالاسم | تاريخ البداية | تاريخ النهاية | السعر"
+        "occasion"
       );
       return true;
 
-    case BUTTONS.PERIOD_LIST:
-      await sendPeriodsList(
-        env,
-        chatId
-      );
-      return true;
+    case BUTTONS.PERIOD_NAME:
+      if (
+        currentState?.state ===
+          "period_details"
+      ) {
+        await beginPeriodFieldEdit(
+          env,
+          chatId,
+          currentState.payload.periodId,
+          "edit_period_name",
+          "أرسل اسم الفترة الجديد:"
+        );
+
+        return true;
+      }
+      return false;
+
+    case BUTTONS.PERIOD_START:
+      if (
+        currentState?.state ===
+          "period_details"
+      ) {
+        await beginPeriodFieldEdit(
+          env,
+          chatId,
+          currentState.payload.periodId,
+          "edit_period_start",
+          "أرسل تاريخ البداية بهذا الشكل: 2026-07-15"
+        );
+
+        return true;
+      }
+      return false;
+
+    case BUTTONS.PERIOD_END:
+      if (
+        currentState?.state ===
+          "period_details"
+      ) {
+        await beginPeriodFieldEdit(
+          env,
+          chatId,
+          currentState.payload.periodId,
+          "edit_period_end",
+          "أرسل تاريخ النهاية بهذا الشكل: 2026-08-31"
+        );
+
+        return true;
+      }
+      return false;
+
+    case BUTTONS.PERIOD_PRICE:
+      if (
+        currentState?.state ===
+          "period_details"
+      ) {
+        await beginPeriodFieldEdit(
+          env,
+          chatId,
+          currentState.payload.periodId,
+          "edit_period_price",
+          "أرسل سعر الفترة الجديد:"
+        );
+
+        return true;
+      }
+      return false;
 
     case BUTTONS.PERIOD_TOGGLE:
-      await beginState(
-        env,
-        chatId,
-        "toggle_period",
-        {
-          returnMenu:
-            "periods"
-        },
-        "أرسل رقم الفترة التي تريد إظهارها أو إخفاءها."
-      );
-      return true;
+      if (
+        currentState?.state ===
+          "period_details"
+      ) {
+        await togglePeriod(
+          env,
+          currentState.payload.periodId
+        );
+
+        await sendPeriodDetails(
+          env,
+          chatId,
+          currentState.payload.periodId
+        );
+
+        return true;
+      }
+      return false;
 
     case BUTTONS.PERIOD_DELETE:
-      await beginState(
-        env,
-        chatId,
-        "delete_period",
-        {
-          returnMenu:
-            "periods"
-        },
-        "أرسل رقم الفترة التي تريد حذفها."
-      );
-      return true;
+      if (
+        currentState?.state ===
+          "period_details"
+      ) {
+        await setState(
+          env,
+          chatId,
+          "period_delete_confirm",
+          {
+            periodId:
+              currentState.payload.periodId,
+            returnMenu:
+              "period_details"
+          }
+        );
+
+        await sendMessage(
+          env,
+          chatId,
+          "هل أنت متأكد من حذف هذه الفترة نهائيًا؟",
+          replyKeyboard([
+            [
+              BUTTONS.PERIOD_DELETE_CONFIRM
+            ],
+            [
+              BUTTONS.CANCEL
+            ]
+          ])
+        );
+
+        return true;
+      }
+      return false;
+
+    case BUTTONS.PERIOD_DELETE_CONFIRM:
+      if (
+        currentState?.state ===
+          "period_delete_confirm"
+      ) {
+        await deletePeriod(
+          env,
+          currentState.payload.periodId
+        );
+
+        await clearState(
+          env,
+          chatId
+        );
+
+        await sendMessage(
+          env,
+          chatId,
+          "✅ تم حذف الفترة.",
+          mainKeyboard()
+        );
+
+        await sendPeriodsMenu(
+          env,
+          chatId
+        );
+
+        return true;
+      }
+      return false;
 
     default:
       return false;
@@ -1558,7 +1840,7 @@ async function handleMenuButton(
 }
 
 /* =========================
-   لوحات الأزرار الثابتة
+   لوحات الأزرار
 ========================= */
 
 function mainKeyboard() {
@@ -1661,14 +1943,14 @@ function paymentKeyboard() {
   ]);
 }
 
-function servicesKeyboard() {
+function serviceDetailsKeyboard() {
   return replyKeyboard([
     [
-      BUTTONS.SERVICE_ADD,
-      BUTTONS.SERVICE_LIST
+      BUTTONS.SERVICE_NAME,
+      BUTTONS.SERVICE_PRICE
     ],
     [
-      BUTTONS.SERVICE_EDIT
+      BUTTONS.SERVICE_DESCRIPTION
     ],
     [
       BUTTONS.SERVICE_TOGGLE,
@@ -1680,14 +1962,15 @@ function servicesKeyboard() {
   ]);
 }
 
-function periodsKeyboard() {
+function periodDetailsKeyboard() {
   return replyKeyboard([
     [
-      BUTTONS.PERIOD_ADD_SEASON,
-      BUTTONS.PERIOD_ADD_OCCASION
+      BUTTONS.PERIOD_NAME,
+      BUTTONS.PERIOD_PRICE
     ],
     [
-      BUTTONS.PERIOD_LIST
+      BUTTONS.PERIOD_START,
+      BUTTONS.PERIOD_END
     ],
     [
       BUTTONS.PERIOD_TOGGLE,
@@ -1702,8 +1985,7 @@ function periodsKeyboard() {
 function cancelKeyboard() {
   return replyKeyboard([
     [
-      BUTTONS.CANCEL,
-      BUTTONS.BACK
+      BUTTONS.CANCEL
     ]
   ]);
 }
@@ -1732,17 +2014,22 @@ function replyKeyboard(rows) {
 }
 
 /* =========================
-   إرسال القوائم
+   القوائم
 ========================= */
 
 async function sendMainMenu(
   env,
   chatId
 ) {
+  await clearState(
+    env,
+    chatId
+  );
+
   await sendMessage(
     env,
     chatId,
-    "⚙️ <b>إدارة موقع الحجز</b>\n\nاختر القسم المطلوب من الأزرار الموجودة أسفل المحادثة.",
+    "⚙️ <b>إدارة موقع الحجز</b>\n\nاختر القسم المطلوب من الأزرار أسفل المحادثة.",
     mainKeyboard(),
     "HTML"
   );
@@ -1754,6 +2041,16 @@ async function sendSiteMenu(
 ) {
   const settings =
     await getSettings(env);
+
+  await setState(
+    env,
+    chatId,
+    "site_menu",
+    {
+      returnMenu:
+        "main"
+    }
+  );
 
   await sendMessage(
     env,
@@ -1780,6 +2077,16 @@ async function sendPricesMenu(
   const settings =
     await getSettings(env);
 
+  await setState(
+    env,
+    chatId,
+    "prices_menu",
+    {
+      returnMenu:
+        "main"
+    }
+  );
+
   await sendMessage(
     env,
     chatId,
@@ -1798,6 +2105,16 @@ async function sendInsuranceMenu(
 ) {
   const settings =
     await getSettings(env);
+
+  await setState(
+    env,
+    chatId,
+    "insurance_menu",
+    {
+      returnMenu:
+        "main"
+    }
+  );
 
   await sendMessage(
     env,
@@ -1825,6 +2142,16 @@ async function sendPaymentMenu(
   const settings =
     await getSettings(env);
 
+  await setState(
+    env,
+    chatId,
+    "payment_menu",
+    {
+      returnMenu:
+        "main"
+    }
+  );
+
   await sendMessage(
     env,
     chatId,
@@ -1844,7 +2171,7 @@ async function sendPaymentMenu(
         : "🔴 مخفي"
     }\n\n` +
     `<b>رابط البطاقة:</b>\n<code>${html(settings.card_url || "غير مضاف")}</code>\n\n` +
-    `<b>رقم واتساب التحويل:</b>\n<code>${html(settings.bank_whatsapp || "غير مضاف")}</code>\n\n` +
+    `<b>واتساب التحويل:</b>\n<code>${html(settings.bank_whatsapp || "غير مضاف")}</code>\n\n` +
     `<b>بوت الدفع:</b>\n<code>${html(settings.payment_bot_username || "غير مضاف")}</code>`,
     paymentKeyboard(),
     "HTML"
@@ -1855,38 +2182,11 @@ async function sendServicesMenu(
   env,
   chatId
 ) {
-  await sendMessage(
-    env,
-    chatId,
-    "🛎 <b>إدارة الخدمات</b>\n\nيمكنك الإضافة أو التعديل أو الإظهار والإخفاء أو الحذف من الأزرار.",
-    servicesKeyboard(),
-    "HTML"
-  );
-}
-
-async function sendPeriodsMenu(
-  env,
-  chatId
-) {
-  await sendMessage(
-    env,
-    chatId,
-    "🎉 <b>المواسم والمناسبات</b>\n\nيمكنك إضافة موسم أو مناسبة والتحكم بالفترات الحالية.",
-    periodsKeyboard(),
-    "HTML"
-  );
-}
-
-async function sendServicesList(
-  env,
-  chatId
-) {
   const result =
     await env.DB.prepare(`
       SELECT
         id,
         name,
-        description,
         price,
         visible
       FROM services
@@ -1896,41 +2196,121 @@ async function sendServicesList(
   const services =
     result.results || [];
 
-  if (!services.length) {
+  const rows = [
+    [
+      BUTTONS.SERVICE_ADD
+    ]
+  ];
+
+  for (
+    let index = 0;
+    index < services.length;
+    index += 2
+  ) {
+    const row = [];
+
+    row.push(
+      serviceButtonText(
+        services[index]
+      )
+    );
+
+    if (services[index + 1]) {
+      row.push(
+        serviceButtonText(
+          services[index + 1]
+        )
+      );
+    }
+
+    rows.push(row);
+  }
+
+  rows.push([
+    BUTTONS.BACK
+  ]);
+
+  await setState(
+    env,
+    chatId,
+    "services_menu",
+    {
+      returnMenu:
+        "main"
+    }
+  );
+
+  await sendMessage(
+    env,
+    chatId,
+    "🛎 <b>إدارة الخدمات</b>\n\nاضغط على اسم الخدمة التي تريد تعديلها، أو اختر إضافة خدمة جديدة.",
+    replyKeyboard(rows),
+    "HTML"
+  );
+}
+
+async function sendServiceDetails(
+  env,
+  chatId,
+  serviceId
+) {
+  const service =
+    await env.DB.prepare(`
+      SELECT *
+      FROM services
+      WHERE id = ?
+      LIMIT 1
+    `).bind(
+      serviceId
+    ).first();
+
+  if (!service) {
     await sendMessage(
       env,
       chatId,
-      "لا توجد خدمات مضافة.",
-      servicesKeyboard()
+      "تعذر العثور على الخدمة.",
+      mainKeyboard()
+    );
+
+    await sendServicesMenu(
+      env,
+      chatId
     );
 
     return;
   }
 
-  const lines =
-    services.map(service => {
-      const status =
-        Number(service.visible) === 1
-          ? "🟢"
-          : "🔴";
+  await setState(
+    env,
+    chatId,
+    "service_details",
+    {
+      serviceId:
+        Number(service.id),
 
-      return (
-        `${status} <b>رقم ${service.id}</b>\n` +
-        `${html(service.name)} — ${money(service.price)}\n` +
-        `${html(service.description || "بدون وصف")}`
-      );
-    });
+      returnMenu:
+        "services"
+    }
+  );
 
   await sendMessage(
     env,
     chatId,
-    lines.join("\n\n"),
-    servicesKeyboard(),
+    "🛎 <b>تفاصيل الخدمة</b>\n\n" +
+    `<b>الاسم:</b>\n${html(service.name)}\n\n` +
+    `<b>الوصف:</b>\n${html(service.description || "بدون وصف")}\n\n` +
+    `<b>السعر:</b> ${money(service.price)}\n` +
+    `<b>الحالة:</b> ${
+      Number(service.visible) === 1
+        ? "🟢 ظاهرة"
+        : "🔴 مخفية"
+    }`,
+    serviceDetailsKeyboard(),
     "HTML"
   );
 }
 
-async function sendPeriodsList(
+async function sendPeriodsMenu(
   env,
   chatId
 ) {
@@ -1940,59 +2320,323 @@ async function sendPeriodsList(
         id,
         type,
         name,
-        start_date,
-        end_date,
         price,
         visible
       FROM periods
-      ORDER BY start_date ASC
+      ORDER BY start_date ASC, id ASC
     `).all();
 
   const periods =
     result.results || [];
 
-  if (!periods.length) {
+  const rows = [
+    [
+      BUTTONS.PERIOD_ADD_SEASON,
+      BUTTONS.PERIOD_ADD_OCCASION
+    ]
+  ];
+
+  for (
+    let index = 0;
+    index < periods.length;
+    index += 2
+  ) {
+    const row = [];
+
+    row.push(
+      periodButtonText(
+        periods[index]
+      )
+    );
+
+    if (periods[index + 1]) {
+      row.push(
+        periodButtonText(
+          periods[index + 1]
+        )
+      );
+    }
+
+    rows.push(row);
+  }
+
+  rows.push([
+    BUTTONS.BACK
+  ]);
+
+  await setState(
+    env,
+    chatId,
+    "periods_menu",
+    {
+      returnMenu:
+        "main"
+    }
+  );
+
+  await sendMessage(
+    env,
+    chatId,
+    "🎉 <b>المواسم والمناسبات</b>\n\nاضغط على اسم الموسم أو المناسبة لتعديلها.",
+    replyKeyboard(rows),
+    "HTML"
+  );
+}
+
+async function sendPeriodDetails(
+  env,
+  chatId,
+  periodId
+) {
+  const period =
+    await env.DB.prepare(`
+      SELECT *
+      FROM periods
+      WHERE id = ?
+      LIMIT 1
+    `).bind(
+      periodId
+    ).first();
+
+  if (!period) {
     await sendMessage(
       env,
       chatId,
-      "لا توجد مواسم أو مناسبات مضافة.",
-      periodsKeyboard()
+      "تعذر العثور على الفترة.",
+      mainKeyboard()
+    );
+
+    await sendPeriodsMenu(
+      env,
+      chatId
     );
 
     return;
   }
 
-  const lines =
-    periods.map(period => {
-      const status =
-        Number(period.visible) === 1
-          ? "🟢"
-          : "🔴";
+  await setState(
+    env,
+    chatId,
+    "period_details",
+    {
+      periodId:
+        Number(period.id),
 
-      const typeName =
-        period.type === "season"
-          ? "موسم"
-          : "مناسبة";
+      returnMenu:
+        "periods"
+    }
+  );
 
-      return (
-        `${status} <b>رقم ${period.id}</b> — ${typeName}\n` +
-        `${html(period.name)}\n` +
-        `${html(period.start_date)} إلى ${html(period.end_date)}\n` +
-        `${money(period.price)}`
-      );
-    });
+  const typeName =
+    period.type === "season"
+      ? "موسم"
+      : "مناسبة";
 
   await sendMessage(
     env,
     chatId,
-    lines.join("\n\n"),
-    periodsKeyboard(),
+    "🎉 <b>تفاصيل الفترة</b>\n\n" +
+    `<b>النوع:</b> ${typeName}\n` +
+    `<b>الاسم:</b> ${html(period.name)}\n` +
+    `<b>البداية:</b> ${html(period.start_date)}\n` +
+    `<b>النهاية:</b> ${html(period.end_date)}\n` +
+    `<b>السعر:</b> ${money(period.price)}\n` +
+    `<b>الحالة:</b> ${
+      Number(period.visible) === 1
+        ? "🟢 ظاهرة"
+        : "🔴 مخفية"
+    }`,
+    periodDetailsKeyboard(),
     "HTML"
   );
 }
 
 /* =========================
-   بدء عمليات الإدخال
+   إضافة الخدمات خطوة بخطوة
+========================= */
+
+async function startAddService(
+  env,
+  chatId
+) {
+  await setState(
+    env,
+    chatId,
+    "add_service_name",
+    {
+      returnMenu:
+        "services"
+    }
+  );
+
+  await sendMessage(
+    env,
+    chatId,
+    "أرسل اسم الخدمة الجديدة:",
+    cancelKeyboard()
+  );
+}
+
+async function continueAddServiceDescription(
+  env,
+  chatId,
+  name
+) {
+  await setState(
+    env,
+    chatId,
+    "add_service_description",
+    {
+      name,
+      returnMenu:
+        "services"
+    }
+  );
+
+  await sendMessage(
+    env,
+    chatId,
+    "أرسل وصف الخدمة:",
+    cancelKeyboard()
+  );
+}
+
+async function continueAddServicePrice(
+  env,
+  chatId,
+  payload,
+  description
+) {
+  await setState(
+    env,
+    chatId,
+    "add_service_price",
+    {
+      ...payload,
+      description,
+      returnMenu:
+        "services"
+    }
+  );
+
+  await sendMessage(
+    env,
+    chatId,
+    "أرسل سعر الخدمة بالأرقام فقط:",
+    cancelKeyboard()
+  );
+}
+
+/* =========================
+   إضافة الفترات خطوة بخطوة
+========================= */
+
+async function startAddPeriod(
+  env,
+  chatId,
+  type
+) {
+  await setState(
+    env,
+    chatId,
+    "add_period_name",
+    {
+      type,
+      returnMenu:
+        "periods"
+    }
+  );
+
+  await sendMessage(
+    env,
+    chatId,
+    type === "season"
+      ? "أرسل اسم الموسم الجديد:"
+      : "أرسل اسم المناسبة الجديدة:",
+    cancelKeyboard()
+  );
+}
+
+async function continueAddPeriodStart(
+  env,
+  chatId,
+  payload,
+  name
+) {
+  await setState(
+    env,
+    chatId,
+    "add_period_start",
+    {
+      ...payload,
+      name,
+      returnMenu:
+        "periods"
+    }
+  );
+
+  await sendMessage(
+    env,
+    chatId,
+    "أرسل تاريخ البداية بهذا الشكل: 2026-07-15",
+    cancelKeyboard()
+  );
+}
+
+async function continueAddPeriodEnd(
+  env,
+  chatId,
+  payload,
+  startDate
+) {
+  await setState(
+    env,
+    chatId,
+    "add_period_end",
+    {
+      ...payload,
+      startDate,
+      returnMenu:
+        "periods"
+    }
+  );
+
+  await sendMessage(
+    env,
+    chatId,
+    "أرسل تاريخ النهاية بهذا الشكل: 2026-08-31",
+    cancelKeyboard()
+  );
+}
+
+async function continueAddPeriodPrice(
+  env,
+  chatId,
+  payload,
+  endDate
+) {
+  await setState(
+    env,
+    chatId,
+    "add_period_price",
+    {
+      ...payload,
+      endDate,
+      returnMenu:
+        "periods"
+    }
+  );
+
+  await sendMessage(
+    env,
+    chatId,
+    "أرسل سعر الموسم أو المناسبة بالأرقام فقط:",
+    cancelKeyboard()
+  );
+}
+
+/* =========================
+   بدء التعديل
 ========================= */
 
 async function beginSettingEdit(
@@ -2020,18 +2664,52 @@ async function beginSettingEdit(
   );
 }
 
-async function beginState(
+async function beginServiceFieldEdit(
   env,
   chatId,
+  serviceId,
   state,
-  payload,
   prompt
 ) {
   await setState(
     env,
     chatId,
     state,
-    payload
+    {
+      serviceId:
+        Number(serviceId),
+
+      returnMenu:
+        "service_details"
+    }
+  );
+
+  await sendMessage(
+    env,
+    chatId,
+    prompt,
+    cancelKeyboard()
+  );
+}
+
+async function beginPeriodFieldEdit(
+  env,
+  chatId,
+  periodId,
+  state,
+  prompt
+) {
+  await setState(
+    env,
+    chatId,
+    state,
+    {
+      periodId:
+        Number(periodId),
+
+      returnMenu:
+        "period_details"
+    }
   );
 
   await sendMessage(
@@ -2043,7 +2721,7 @@ async function beginState(
 }
 
 /* =========================
-   معالجة القيم المدخلة
+   معالجة الإدخال
 ========================= */
 
 async function processState(
@@ -2059,6 +2737,7 @@ async function processState(
       "أرسل قيمة صحيحة.",
       cancelKeyboard()
     );
+
     return;
   }
 
@@ -2072,226 +2751,536 @@ async function processState(
       text,
       state
     );
+
     return;
   }
 
   if (
     state.state ===
-      "add_service"
+      "add_service_name"
   ) {
-    await processAddService(
+    if (
+      text.length < 2
+    ) {
+      await sendMessage(
+        env,
+        chatId,
+        "اسم الخدمة قصير جدًا.",
+        cancelKeyboard()
+      );
+
+      return;
+    }
+
+    await continueAddServiceDescription(
       env,
       chatId,
-      text,
-      state
+      text
     );
+
     return;
   }
 
   if (
     state.state ===
-      "ask_edit_service_id"
+      "add_service_description"
   ) {
-    const id =
-      integer(text);
+    await continueAddServicePrice(
+      env,
+      chatId,
+      state.payload,
+      text
+    );
 
-    const service =
+    return;
+  }
+
+  if (
+    state.state ===
+      "add_service_price"
+  ) {
+    const price =
+      numberInput(text);
+
+    if (
+      price === null ||
+      price < 0
+    ) {
+      await sendMessage(
+        env,
+        chatId,
+        "أرسل سعرًا صحيحًا بالأرقام فقط.",
+        cancelKeyboard()
+      );
+
+      return;
+    }
+
+    const order =
       await env.DB.prepare(`
-        SELECT *
+        SELECT
+          COALESCE(
+            MAX(sort_order),
+            0
+          ) + 1 AS next_order
         FROM services
+      `).first();
+
+    await env.DB.prepare(`
+      INSERT INTO services (
+        name,
+        description,
+        price,
+        visible,
+        sort_order
+      )
+      VALUES (?, ?, ?, 1, ?)
+    `).bind(
+      state.payload.name,
+      state.payload.description,
+      price,
+      Number(
+        order?.next_order || 1
+      )
+    ).run();
+
+    await clearState(
+      env,
+      chatId
+    );
+
+    await sendMessage(
+      env,
+      chatId,
+      "✅ تمت إضافة الخدمة بنجاح.",
+      mainKeyboard()
+    );
+
+    await sendServicesMenu(
+      env,
+      chatId
+    );
+
+    return;
+  }
+
+  if (
+    state.state ===
+      "edit_service_name"
+  ) {
+    await env.DB.prepare(`
+      UPDATE services
+      SET
+        name = ?,
+        updated_at =
+          CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).bind(
+      text,
+      state.payload.serviceId
+    ).run();
+
+    await clearState(
+      env,
+      chatId
+    );
+
+    await sendMessage(
+      env,
+      chatId,
+      "✅ تم تعديل اسم الخدمة.",
+      serviceDetailsKeyboard()
+    );
+
+    await sendServiceDetails(
+      env,
+      chatId,
+      state.payload.serviceId
+    );
+
+    return;
+  }
+
+  if (
+    state.state ===
+      "edit_service_description"
+  ) {
+    await env.DB.prepare(`
+      UPDATE services
+      SET
+        description = ?,
+        updated_at =
+          CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).bind(
+      text,
+      state.payload.serviceId
+    ).run();
+
+    await clearState(
+      env,
+      chatId
+    );
+
+    await sendMessage(
+      env,
+      chatId,
+      "✅ تم تعديل وصف الخدمة.",
+      serviceDetailsKeyboard()
+    );
+
+    await sendServiceDetails(
+      env,
+      chatId,
+      state.payload.serviceId
+    );
+
+    return;
+  }
+
+  if (
+    state.state ===
+      "edit_service_price"
+  ) {
+    const price =
+      numberInput(text);
+
+    if (
+      price === null ||
+      price < 0
+    ) {
+      await sendMessage(
+        env,
+        chatId,
+        "أرسل سعرًا صحيحًا بالأرقام فقط.",
+        cancelKeyboard()
+      );
+
+      return;
+    }
+
+    await env.DB.prepare(`
+      UPDATE services
+      SET
+        price = ?,
+        updated_at =
+          CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).bind(
+      price,
+      state.payload.serviceId
+    ).run();
+
+    await clearState(
+      env,
+      chatId
+    );
+
+    await sendMessage(
+      env,
+      chatId,
+      "✅ تم تعديل سعر الخدمة.",
+      serviceDetailsKeyboard()
+    );
+
+    await sendServiceDetails(
+      env,
+      chatId,
+      state.payload.serviceId
+    );
+
+    return;
+  }
+
+  if (
+    state.state ===
+      "add_period_name"
+  ) {
+    await continueAddPeriodStart(
+      env,
+      chatId,
+      state.payload,
+      text
+    );
+
+    return;
+  }
+
+  if (
+    state.state ===
+      "add_period_start"
+  ) {
+    if (!isDate(text)) {
+      await sendMessage(
+        env,
+        chatId,
+        "صيغة التاريخ غير صحيحة. اكتب مثلًا: 2026-07-15",
+        cancelKeyboard()
+      );
+
+      return;
+    }
+
+    await continueAddPeriodEnd(
+      env,
+      chatId,
+      state.payload,
+      text
+    );
+
+    return;
+  }
+
+  if (
+    state.state ===
+      "add_period_end"
+  ) {
+    if (!isDate(text)) {
+      await sendMessage(
+        env,
+        chatId,
+        "صيغة التاريخ غير صحيحة. اكتب مثلًا: 2026-08-31",
+        cancelKeyboard()
+      );
+
+      return;
+    }
+
+    if (
+      text <
+      state.payload.startDate
+    ) {
+      await sendMessage(
+        env,
+        chatId,
+        "تاريخ النهاية يجب أن يكون بعد تاريخ البداية.",
+        cancelKeyboard()
+      );
+
+      return;
+    }
+
+    await continueAddPeriodPrice(
+      env,
+      chatId,
+      state.payload,
+      text
+    );
+
+    return;
+  }
+
+  if (
+    state.state ===
+      "add_period_price"
+  ) {
+    const price =
+      numberInput(text);
+
+    if (
+      price === null ||
+      price < 0
+    ) {
+      await sendMessage(
+        env,
+        chatId,
+        "أرسل سعرًا صحيحًا بالأرقام فقط.",
+        cancelKeyboard()
+      );
+
+      return;
+    }
+
+    await env.DB.prepare(`
+      INSERT INTO periods (
+        type,
+        name,
+        start_date,
+        end_date,
+        price,
+        visible,
+        updated_at
+      )
+      VALUES (
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
+        1,
+        CURRENT_TIMESTAMP
+      )
+    `).bind(
+      state.payload.type,
+      state.payload.name,
+      state.payload.startDate,
+      state.payload.endDate,
+      price
+    ).run();
+
+    await clearState(
+      env,
+      chatId
+    );
+
+    await sendMessage(
+      env,
+      chatId,
+      "✅ تمت إضافة الفترة بنجاح.",
+      mainKeyboard()
+    );
+
+    await sendPeriodsMenu(
+      env,
+      chatId
+    );
+
+    return;
+  }
+
+  if (
+    state.state ===
+      "edit_period_name"
+  ) {
+    await env.DB.prepare(`
+      UPDATE periods
+      SET
+        name = ?,
+        updated_at =
+          CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).bind(
+      text,
+      state.payload.periodId
+    ).run();
+
+    await finishPeriodEdit(
+      env,
+      chatId,
+      state.payload.periodId,
+      "✅ تم تعديل اسم الفترة."
+    );
+
+    return;
+  }
+
+  if (
+    state.state ===
+      "edit_period_start"
+  ) {
+    if (!isDate(text)) {
+      await sendMessage(
+        env,
+        chatId,
+        "صيغة التاريخ غير صحيحة. اكتب مثلًا: 2026-07-15",
+        cancelKeyboard()
+      );
+
+      return;
+    }
+
+    const period =
+      await env.DB.prepare(`
+        SELECT end_date
+        FROM periods
         WHERE id = ?
         LIMIT 1
-      `).bind(id).first();
+      `).bind(
+        state.payload.periodId
+      ).first();
 
-    if (!service) {
+    if (
+      period &&
+      text > period.end_date
+    ) {
       await sendMessage(
         env,
         chatId,
-        "لم يتم العثور على هذه الخدمة. أرسل رقم خدمة صحيحًا.",
+        "تاريخ البداية لا يمكن أن يكون بعد تاريخ النهاية.",
         cancelKeyboard()
       );
+
       return;
     }
 
-    await setState(
-      env,
-      chatId,
-      "edit_service_data",
-      {
-        id,
-        returnMenu:
-          "services"
-      }
-    );
-
-    await sendMessage(
-      env,
-      chatId,
-      "أرسل البيانات الجديدة بهذا الشكل:\n\nالاسم | الوصف | السعر",
-      cancelKeyboard()
-    );
-
-    return;
-  }
-
-  if (
-    state.state ===
-      "edit_service_data"
-  ) {
-    await processEditService(
-      env,
-      chatId,
+    await env.DB.prepare(`
+      UPDATE periods
+      SET
+        start_date = ?,
+        updated_at =
+          CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).bind(
       text,
-      state
+      state.payload.periodId
+    ).run();
+
+    await finishPeriodEdit(
+      env,
+      chatId,
+      state.payload.periodId,
+      "✅ تم تعديل تاريخ البداية."
     );
+
     return;
   }
 
   if (
     state.state ===
-      "toggle_service"
+      "edit_period_end"
   ) {
-    const id =
-      integer(text);
+    if (!isDate(text)) {
+      await sendMessage(
+        env,
+        chatId,
+        "صيغة التاريخ غير صحيحة. اكتب مثلًا: 2026-08-31",
+        cancelKeyboard()
+      );
 
-    const result =
+      return;
+    }
+
+    const period =
       await env.DB.prepare(`
-        UPDATE services
-        SET
-          visible = CASE
-            WHEN visible = 1 THEN 0
-            ELSE 1
-          END,
-          updated_at =
-            CURRENT_TIMESTAMP
+        SELECT start_date
+        FROM periods
         WHERE id = ?
-      `).bind(id).run();
+        LIMIT 1
+      `).bind(
+        state.payload.periodId
+      ).first();
 
     if (
-      Number(
-        result.meta?.changes || 0
-      ) === 0
+      period &&
+      text < period.start_date
     ) {
       await sendMessage(
         env,
         chatId,
-        "لم يتم العثور على الخدمة.",
+        "تاريخ النهاية لا يمكن أن يكون قبل تاريخ البداية.",
         cancelKeyboard()
       );
+
       return;
     }
 
-    await clearState(
-      env,
-      chatId
-    );
-
-    await sendMessage(
-      env,
-      chatId,
-      "✅ تم تغيير حالة الخدمة.",
-      servicesKeyboard()
-    );
-
-    return;
-  }
-
-  if (
-    state.state ===
-      "delete_service"
-  ) {
-    const id =
-      integer(text);
-
-    const result =
-      await env.DB.prepare(`
-        DELETE FROM services
-        WHERE id = ?
-      `).bind(id).run();
-
-    if (
-      Number(
-        result.meta?.changes || 0
-      ) === 0
-    ) {
-      await sendMessage(
-        env,
-        chatId,
-        "لم يتم العثور على الخدمة.",
-        cancelKeyboard()
-      );
-      return;
-    }
-
-    await clearState(
-      env,
-      chatId
-    );
-
-    await sendMessage(
-      env,
-      chatId,
-      "✅ تم حذف الخدمة.",
-      servicesKeyboard()
-    );
-
-    return;
-  }
-
-  if (
-    state.state ===
-      "add_period"
-  ) {
-    await processAddPeriod(
-      env,
-      chatId,
+    await env.DB.prepare(`
+      UPDATE periods
+      SET
+        end_date = ?,
+        updated_at =
+          CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).bind(
       text,
-      state
-    );
-    return;
-  }
+      state.payload.periodId
+    ).run();
 
-  if (
-    state.state ===
-      "toggle_period"
-  ) {
-    const id =
-      integer(text);
-
-    const result =
-      await env.DB.prepare(`
-        UPDATE periods
-        SET visible = CASE
-          WHEN visible = 1 THEN 0
-          ELSE 1
-        END
-        WHERE id = ?
-      `).bind(id).run();
-
-    if (
-      Number(
-        result.meta?.changes || 0
-      ) === 0
-    ) {
-      await sendMessage(
-        env,
-        chatId,
-        "لم يتم العثور على الفترة.",
-        cancelKeyboard()
-      );
-      return;
-    }
-
-    await clearState(
-      env,
-      chatId
-    );
-
-    await sendMessage(
+    await finishPeriodEdit(
       env,
       chatId,
-      "✅ تم تغيير حالة الفترة.",
-      periodsKeyboard()
+      state.payload.periodId,
+      "✅ تم تعديل تاريخ النهاية."
     );
 
     return;
@@ -2299,41 +3288,42 @@ async function processState(
 
   if (
     state.state ===
-      "delete_period"
+      "edit_period_price"
   ) {
-    const id =
-      integer(text);
-
-    const result =
-      await env.DB.prepare(`
-        DELETE FROM periods
-        WHERE id = ?
-      `).bind(id).run();
+    const price =
+      numberInput(text);
 
     if (
-      Number(
-        result.meta?.changes || 0
-      ) === 0
+      price === null ||
+      price < 0
     ) {
       await sendMessage(
         env,
         chatId,
-        "لم يتم العثور على الفترة.",
+        "أرسل سعرًا صحيحًا بالأرقام فقط.",
         cancelKeyboard()
       );
+
       return;
     }
 
-    await clearState(
-      env,
-      chatId
-    );
+    await env.DB.prepare(`
+      UPDATE periods
+      SET
+        price = ?,
+        updated_at =
+          CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).bind(
+      price,
+      state.payload.periodId
+    ).run();
 
-    await sendMessage(
+    await finishPeriodEdit(
       env,
       chatId,
-      "✅ تم حذف الفترة.",
-      periodsKeyboard()
+      state.payload.periodId,
+      "✅ تم تعديل سعر الفترة."
     );
   }
 }
@@ -2359,10 +3349,10 @@ async function processSettingEdit(
     numericKeys.has(key)
   ) {
     const value =
-      Number(text);
+      numberInput(text);
 
     if (
-      !Number.isFinite(value) ||
+      value === null ||
       value < 0
     ) {
       await sendMessage(
@@ -2371,8 +3361,11 @@ async function processSettingEdit(
         "أرسل رقمًا صحيحًا فقط.",
         cancelKeyboard()
       );
+
       return;
     }
+
+    text = String(value);
   }
 
   if (
@@ -2386,6 +3379,7 @@ async function processSettingEdit(
       "الرابط يجب أن يبدأ بـ https://",
       cancelKeyboard()
     );
+
     return;
   }
 
@@ -2401,6 +3395,7 @@ async function processSettingEdit(
       "اسم البوت يجب أن يبدأ بعلامة @",
       cancelKeyboard()
     );
+
     return;
   }
 
@@ -2417,24 +3412,21 @@ async function processSettingEdit(
       await sendMessage(
         env,
         chatId,
-        "أرسل رقم واتساب صحيحًا مع رمز الدولة وبدون علامة +.",
+        "أرسل رقم واتساب صحيحًا مع رمز الدولة، ودون علامة +.",
         cancelKeyboard()
       );
+
       return;
     }
 
-    await saveSetting(
-      env,
-      key,
-      normalized
-    );
-  } else {
-    await saveSetting(
-      env,
-      key,
-      text
-    );
+    text = normalized;
   }
+
+  await saveSetting(
+    env,
+    key,
+    text
+  );
 
   await clearState(
     env,
@@ -2445,266 +3437,236 @@ async function processSettingEdit(
     env,
     chatId,
     "✅ تم حفظ التعديل.",
-    menuKeyboard(
-      state.payload
-        ?.returnMenu
-    )
+    mainKeyboard()
   );
 
-  await returnToMenu(
+  await returnToMenuName(
     env,
     chatId,
-    state.payload
-      ?.returnMenu
-  );
-}
-
-async function processAddService(
-  env,
-  chatId,
-  text,
-  state
-) {
-  const parts =
-    text
-      .split("|")
-      .map(
-        item =>
-          item.trim()
-      );
-
-  if (
-    parts.length < 3
-  ) {
-    await sendMessage(
-      env,
-      chatId,
-      "الصيغة غير صحيحة.\n\nالاسم | الوصف | السعر",
-      cancelKeyboard()
-    );
-    return;
-  }
-
-  const price =
-    Number(parts[2]);
-
-  if (
-    !Number.isFinite(price) ||
-    price < 0
-  ) {
-    await sendMessage(
-      env,
-      chatId,
-      "السعر غير صحيح.",
-      cancelKeyboard()
-    );
-    return;
-  }
-
-  const order =
-    await env.DB.prepare(`
-      SELECT
-        COALESCE(
-          MAX(sort_order),
-          0
-        ) + 1 AS next_order
-      FROM services
-    `).first();
-
-  await env.DB.prepare(`
-    INSERT INTO services (
-      name,
-      description,
-      price,
-      visible,
-      sort_order
-    )
-    VALUES (?, ?, ?, 1, ?)
-  `).bind(
-    parts[0],
-    parts[1],
-    price,
-    Number(
-      order?.next_order || 1
-    )
-  ).run();
-
-  await clearState(
-    env,
-    chatId
-  );
-
-  await sendMessage(
-    env,
-    chatId,
-    "✅ تمت إضافة الخدمة.",
-    servicesKeyboard()
-  );
-}
-
-async function processEditService(
-  env,
-  chatId,
-  text,
-  state
-) {
-  const parts =
-    text
-      .split("|")
-      .map(
-        item =>
-          item.trim()
-      );
-
-  if (
-    parts.length < 3
-  ) {
-    await sendMessage(
-      env,
-      chatId,
-      "الصيغة غير صحيحة.\n\nالاسم | الوصف | السعر",
-      cancelKeyboard()
-    );
-    return;
-  }
-
-  const price =
-    Number(parts[2]);
-
-  if (
-    !Number.isFinite(price) ||
-    price < 0
-  ) {
-    await sendMessage(
-      env,
-      chatId,
-      "السعر غير صحيح.",
-      cancelKeyboard()
-    );
-    return;
-  }
-
-  await env.DB.prepare(`
-    UPDATE services
-    SET
-      name = ?,
-      description = ?,
-      price = ?,
-      updated_at =
-        CURRENT_TIMESTAMP
-    WHERE id = ?
-  `).bind(
-    parts[0],
-    parts[1],
-    price,
-    state.payload.id
-  ).run();
-
-  await clearState(
-    env,
-    chatId
-  );
-
-  await sendMessage(
-    env,
-    chatId,
-    "✅ تم تعديل الخدمة.",
-    servicesKeyboard()
-  );
-}
-
-async function processAddPeriod(
-  env,
-  chatId,
-  text,
-  state
-) {
-  const parts =
-    text
-      .split("|")
-      .map(
-        item =>
-          item.trim()
-      );
-
-  if (
-    parts.length < 4
-  ) {
-    await sendMessage(
-      env,
-      chatId,
-      "الصيغة غير صحيحة.\n\nالاسم | البداية | النهاية | السعر",
-      cancelKeyboard()
-    );
-    return;
-  }
-
-  const price =
-    Number(parts[3]);
-
-  if (
-    !isDate(parts[1]) ||
-    !isDate(parts[2]) ||
-    !Number.isFinite(price) ||
-    price < 0
-  ) {
-    await sendMessage(
-      env,
-      chatId,
-      "تأكد من كتابة التواريخ بهذا الشكل 2026-07-15 ومن كتابة سعر صحيح.",
-      cancelKeyboard()
-    );
-    return;
-  }
-
-  if (
-    parts[2] < parts[1]
-  ) {
-    await sendMessage(
-      env,
-      chatId,
-      "تاريخ النهاية يجب أن يكون بعد تاريخ البداية.",
-      cancelKeyboard()
-    );
-    return;
-  }
-
-  await env.DB.prepare(`
-    INSERT INTO periods (
-      type,
-      name,
-      start_date,
-      end_date,
-      price,
-      visible
-    )
-    VALUES (?, ?, ?, ?, ?, 1)
-  `).bind(
-    state.payload.type,
-    parts[0],
-    parts[1],
-    parts[2],
-    price
-  ).run();
-
-  await clearState(
-    env,
-    chatId
-  );
-
-  await sendMessage(
-    env,
-    chatId,
-    "✅ تمت إضافة الفترة.",
-    periodsKeyboard()
+    state.payload.returnMenu
   );
 }
 
 /* =========================
-   العودة إلى القوائم
+   عمليات الخدمات والفترات
 ========================= */
 
-async function returnToMenu(
+async function toggleService(
+  env,
+  serviceId
+) {
+  await env.DB.prepare(`
+    UPDATE services
+    SET
+      visible = CASE
+        WHEN visible = 1
+          THEN 0
+        ELSE 1
+      END,
+      updated_at =
+        CURRENT_TIMESTAMP
+    WHERE id = ?
+  `).bind(
+    serviceId
+  ).run();
+}
+
+async function deleteService(
+  env,
+  serviceId
+) {
+  await env.DB.prepare(`
+    DELETE FROM services
+    WHERE id = ?
+  `).bind(
+    serviceId
+  ).run();
+}
+
+async function togglePeriod(
+  env,
+  periodId
+) {
+  await env.DB.prepare(`
+    UPDATE periods
+    SET
+      visible = CASE
+        WHEN visible = 1
+          THEN 0
+        ELSE 1
+      END,
+      updated_at =
+        CURRENT_TIMESTAMP
+    WHERE id = ?
+  `).bind(
+    periodId
+  ).run();
+}
+
+async function deletePeriod(
+  env,
+  periodId
+) {
+  await env.DB.prepare(`
+    DELETE FROM periods
+    WHERE id = ?
+  `).bind(
+    periodId
+  ).run();
+}
+
+async function finishPeriodEdit(
+  env,
+  chatId,
+  periodId,
+  message
+) {
+  await clearState(
+    env,
+    chatId
+  );
+
+  await sendMessage(
+    env,
+    chatId,
+    message,
+    periodDetailsKeyboard()
+  );
+
+  await sendPeriodDetails(
+    env,
+    chatId,
+    periodId
+  );
+}
+
+/* =========================
+   العثور على العنصر من الزر
+========================= */
+
+function serviceButtonText(service) {
+  const status =
+    Number(service.visible) === 1
+      ? "🟢"
+      : "🔴";
+
+  return (
+    `${status} ${service.name} — ` +
+    `${number(service.price).toLocaleString("en-US")} ريال`
+  );
+}
+
+function periodButtonText(period) {
+  const status =
+    Number(period.visible) === 1
+      ? "🟢"
+      : "🔴";
+
+  const type =
+    period.type === "season"
+      ? "موسم"
+      : "مناسبة";
+
+  return (
+    `${status} ${type}: ${period.name}`
+  );
+}
+
+async function findServiceByButtonText(
+  env,
+  text
+) {
+  const result =
+    await env.DB.prepare(`
+      SELECT
+        id,
+        name,
+        price,
+        visible
+      FROM services
+      ORDER BY sort_order ASC, id ASC
+    `).all();
+
+  return (
+    result.results || []
+  ).find(
+    service =>
+      serviceButtonText(service) ===
+      text
+  ) || null;
+}
+
+async function findPeriodByButtonText(
+  env,
+  text
+) {
+  const result =
+    await env.DB.prepare(`
+      SELECT
+        id,
+        type,
+        name,
+        price,
+        visible
+      FROM periods
+      ORDER BY start_date ASC, id ASC
+    `).all();
+
+  return (
+    result.results || []
+  ).find(
+    period =>
+      periodButtonText(period) ===
+      text
+  ) || null;
+}
+
+/* =========================
+   الرجوع
+========================= */
+
+async function returnToPreviousMenu(
+  env,
+  chatId,
+  payload
+) {
+  const menu =
+    payload?.returnMenu;
+
+  if (
+    menu === "service_details" &&
+    payload?.serviceId
+  ) {
+    await sendServiceDetails(
+      env,
+      chatId,
+      payload.serviceId
+    );
+
+    return;
+  }
+
+  if (
+    menu === "period_details" &&
+    payload?.periodId
+  ) {
+    await sendPeriodDetails(
+      env,
+      chatId,
+      payload.periodId
+    );
+
+    return;
+  }
+
+  await returnToMenuName(
+    env,
+    chatId,
+    menu
+  );
+}
+
+async function returnToMenuName(
   env,
   chatId,
   menu
@@ -2757,31 +3719,6 @@ async function returnToMenu(
         env,
         chatId
       );
-  }
-}
-
-function menuKeyboard(menu) {
-  switch (menu) {
-    case "site":
-      return siteKeyboard();
-
-    case "prices":
-      return pricesKeyboard();
-
-    case "insurance":
-      return insuranceKeyboard();
-
-    case "payment":
-      return paymentKeyboard();
-
-    case "services":
-      return servicesKeyboard();
-
-    case "periods":
-      return periodsKeyboard();
-
-    default:
-      return mainKeyboard();
   }
 }
 
@@ -2990,7 +3927,7 @@ async function webhookSecret(
 }
 
 /* =========================
-   الأدوات
+   أدوات
 ========================= */
 
 function json(
@@ -3020,16 +3957,22 @@ function number(value) {
     : 0;
 }
 
-function integer(value) {
+function numberInput(value) {
+  const normalized =
+    String(value ?? "")
+      .trim()
+      .replace(/,/g, "");
+
+  if (!normalized) {
+    return null;
+  }
+
   const result =
-    Number.parseInt(
-      String(value),
-      10
-    );
+    Number(normalized);
 
   return Number.isFinite(result)
     ? result
-    : 0;
+    : null;
 }
 
 function clean(
@@ -3060,8 +4003,28 @@ function html(value) {
 }
 
 function isDate(value) {
-  return /^\d{4}-\d{2}-\d{2}$/
-    .test(
-      String(value)
+  const text =
+    String(value ?? "");
+
+  if (
+    !/^\d{4}-\d{2}-\d{2}$/
+      .test(text)
+  ) {
+    return false;
+  }
+
+  const date =
+    new Date(
+      `${text}T00:00:00`
     );
-}
+
+  return (
+    !Number.isNaN(
+      date.getTime()
+    ) &&
+    date
+      .toISOString()
+      .slice(0, 10) ===
+      text
+  );
+    }
