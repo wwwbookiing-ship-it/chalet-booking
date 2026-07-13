@@ -1348,7 +1348,7 @@
                 <strong id="bankPaymentName">تحويل بنكي</strong>
 
                 <small id="bankPaymentDescription">
-                  تواصل مع الإدارة لاستلام الحساب البنكي المخصص للتحويل.
+                  سيتم تحويلك إلى واتساب لإكمال عملية التحويل البنكي.
                 </small>
               </div>
 
@@ -1408,6 +1408,9 @@
     let currentCalculation = null;
     let bookingCreated = false;
 
+    let bookingRequestRunning = false;
+    let paymentRequestRunning = false;
+
     const checkInDate =
       document.getElementById("checkInDate");
 
@@ -1450,8 +1453,18 @@
         return "—";
       }
 
-      const parts = dateValue.split("-");
-      return `${parts[0]}/${parts[1]}/${parts[2]}`;
+      const parts =
+        dateValue.split("-");
+
+      if (parts.length !== 3) {
+        return dateValue;
+      }
+
+      return (
+        `${parts[2]}-` +
+        `${parts[1]}-` +
+        `${parts[0]}`
+      );
     }
 
     function formatArabicTime(timeValue) {
@@ -1503,10 +1516,47 @@
       checkOutDate.min = value;
     }
 
+    async function fetchWithTimeout(
+      url,
+      options = {},
+      timeoutMs = 20000
+    ) {
+      const controller =
+        new AbortController();
+
+      const timeoutId =
+        setTimeout(
+          () => controller.abort(),
+          timeoutMs
+        );
+
+      try {
+        return await fetch(url, {
+          ...options,
+          signal: controller.signal
+        });
+      } catch (error) {
+        if (error?.name === "AbortError") {
+          throw new Error(
+            "استغرق الاتصال وقتًا طويلًا، يرجى المحاولة مرة أخرى."
+          );
+        }
+
+        throw error;
+      } finally {
+        clearTimeout(timeoutId);
+      }
+    }
+
     async function loadStoreConfig() {
-      const response = await fetch("/api/config", {
-        cache: "no-store"
-      });
+      const response =
+        await fetchWithTimeout(
+          "/api/config",
+          {
+            cache: "no-store"
+          },
+          15000
+        );
 
       const result = await response.json();
 
@@ -1527,6 +1577,21 @@
       }
 
       applyStoreConfig();
+    }
+
+    function safeCustomerText(value, fallback = "") {
+      const text = String(value == null ? "" : value).trim();
+
+      if (!text) {
+        return fallback;
+      }
+
+      return text
+        .replace(/بوت\s*الإدارة/gi, "الدعم")
+        .replace(/بوت\s*الدفع/gi, "نظام الدفع")
+        .replace(/البوت/gi, "النظام")
+        .replace(/بوت/gi, "النظام")
+        .replace(/لوحة\s*الإدارة/gi, "الدعم");
     }
 
     function applyStoreConfig() {
@@ -1573,22 +1638,34 @@
       document.getElementById(
         "cardPaymentName"
       ).textContent =
-        STORE_CONFIG.payment.card.name;
+        safeCustomerText(
+          STORE_CONFIG.payment.card.name,
+          "بطاقة ائتمان"
+        );
 
       document.getElementById(
         "cardPaymentDescription"
       ).textContent =
-        STORE_CONFIG.payment.card.description;
+        safeCustomerText(
+          STORE_CONFIG.payment.card.description,
+          "الدفع باستخدام بطاقة بنكية عبر بوابة دفع آمنة."
+        );
 
       document.getElementById(
         "bankPaymentName"
       ).textContent =
-        STORE_CONFIG.payment.bank.name;
+        safeCustomerText(
+          STORE_CONFIG.payment.bank.name,
+          "تحويل بنكي"
+        );
 
       document.getElementById(
         "bankPaymentDescription"
       ).textContent =
-        STORE_CONFIG.payment.bank.description;
+        safeCustomerText(
+          STORE_CONFIG.payment.bank.description,
+          "سيتم تحويلك إلى واتساب لإكمال عملية التحويل البنكي."
+        );
 
       document.getElementById(
         "cardPaymentBox"
@@ -2944,7 +3021,7 @@
         );
 
       const response =
-        await fetch(
+        await fetchWithTimeout(
           "/api/bookings",
           {
             method: "POST",
@@ -2958,7 +3035,8 @@
               ...bookingData,
               invoiceImage
             })
-          }
+          },
+          30000
         );
 
       const result =
@@ -2981,6 +3059,12 @@
     }
 
     async function continueToPayment() {
+      if (bookingRequestRunning) {
+        return;
+      }
+
+      bookingRequestRunning = true;
+
       hideNotice();
 
       const insuranceAgreement =
@@ -3006,6 +3090,7 @@
           block: "center"
         });
 
+        bookingRequestRunning = false;
         return;
       }
 
@@ -3046,6 +3131,8 @@
 
         button.textContent =
           oldText;
+
+        bookingRequestRunning = false;
       }
     }
 
@@ -3091,6 +3178,12 @@
     }
 
     async function openSelectedPayment() {
+      if (paymentRequestRunning) {
+        return;
+      }
+
+      paymentRequestRunning = true;
+
       hideNotice();
 
       const selected =
@@ -3100,6 +3193,7 @@
 
       if (!selected) {
         showPaymentError();
+        paymentRequestRunning = false;
         return;
       }
 
@@ -3127,7 +3221,7 @@
 
         if (selected.value === "card") {
           const response =
-            await fetch(
+            await fetchWithTimeout(
               "/api/payment/card",
               {
                 method: "POST",
@@ -3149,7 +3243,8 @@
                       ).total
                     )
                 })
-              }
+              },
+              20000
             );
 
           const result =
@@ -3218,6 +3313,8 @@
 
         button.textContent =
           oldText;
+
+        paymentRequestRunning = false;
       }
     }
 
@@ -3413,4 +3510,4 @@
   </script>
 
 </body>
-  </html>
+          </html>
