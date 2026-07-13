@@ -2,10 +2,17 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
+
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1, viewport-fit=cover"
   >
+
+  <meta
+    name="theme-color"
+    content="#1f705a"
+  >
+
   <title>طلب حجز</title>
 
   <style>
@@ -33,10 +40,14 @@
     html {
       -webkit-text-size-adjust: 100%;
       text-size-adjust: 100%;
+      scroll-behavior: smooth;
     }
 
     body {
       min-height: 100vh;
+      min-height: 100dvh;
+      padding-bottom: env(safe-area-inset-bottom);
+      overflow-x: hidden;
       background: var(--background);
       color: var(--text);
       font-family: Tahoma, Arial, sans-serif;
@@ -46,10 +57,13 @@
     input,
     textarea {
       font-family: inherit;
+      font-size: 16px;
     }
 
     button {
       cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
     }
 
     .container {
@@ -60,9 +74,17 @@
     .hero {
       position: relative;
       overflow: hidden;
-      padding: 38px 0 68px;
+      padding:
+        calc(38px + env(safe-area-inset-top))
+        0
+        68px;
       color: white;
-      background: linear-gradient(135deg, #17513f, #23765f);
+      background:
+        linear-gradient(
+          135deg,
+          #17513f,
+          #23765f
+        );
       border-radius: 0 0 35px 35px;
     }
 
@@ -109,8 +131,8 @@
     }
 
     .hero h1 {
-      font-size: 30px;
       margin-bottom: 13px;
+      font-size: 30px;
     }
 
     .hero p {
@@ -216,10 +238,10 @@
     }
 
     .step-name {
+      margin-bottom: 8px;
       color: var(--primary);
       font-size: 13px;
       font-weight: bold;
-      margin-bottom: 8px;
     }
 
     .section-header h2 {
@@ -273,7 +295,6 @@
       outline: none;
       background: #fcfdfc;
       color: var(--text);
-      font-size: 14px;
       transition: 0.2s;
     }
 
@@ -286,6 +307,13 @@
       min-height: 115px;
       padding: 14px;
       resize: vertical;
+    }
+
+    input[type="date"],
+    input[type="time"] {
+      min-height: 53px;
+      -webkit-appearance: none;
+      appearance: none;
     }
 
     .field input:focus,
@@ -335,6 +363,7 @@
       font-size: 14px;
       font-weight: bold;
       cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .booking-type input:checked + label {
@@ -399,6 +428,14 @@
     .services-list {
       display: grid;
       gap: 12px;
+      border-radius: 20px;
+      transition: 0.2s;
+    }
+
+    .services-list.error {
+      padding: 10px;
+      border: 1px solid var(--danger);
+      box-shadow: 0 0 0 3px rgba(216, 79, 79, 0.1);
     }
 
     .service-item {
@@ -411,6 +448,7 @@
       border-radius: 18px;
       background: #fcfdfc;
       cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .service-item.selected {
@@ -448,6 +486,22 @@
     .no-services-item {
       margin-top: 5px;
       border-style: dashed;
+    }
+
+    .services-validation {
+      display: none;
+      margin-top: 14px;
+      padding: 13px 15px;
+      color: #a13636;
+      background: #fff1f1;
+      border: 1px solid #efc5c5;
+      border-radius: 15px;
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .services-validation.show {
+      display: block;
     }
 
     .summary-box {
@@ -499,11 +553,12 @@
       padding: 19px;
       color: white;
       border-radius: 21px;
-      background: linear-gradient(
-        135deg,
-        var(--primary-dark),
-        var(--primary)
-      );
+      background:
+        linear-gradient(
+          135deg,
+          var(--primary-dark),
+          var(--primary)
+        );
     }
 
     .amount-row {
@@ -619,6 +674,7 @@
       border-radius: 19px;
       background: #fcfdfc;
       cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .payment-item.selected label {
@@ -679,7 +735,6 @@
       padding: 10px 14px;
       border: 0;
       border-radius: 15px;
-      font-size: 14px;
       font-weight: bold;
     }
 
@@ -788,105 +843,125 @@
         font-size: 9px;
       }
     }
-
-    /* تحسينات iPhone */
-    input,
-    textarea,
-    button {
-      font-size: 16px;
-    }
-
-    input[type="date"],
-    input[type="time"] {
-      min-height: 53px;
-      -webkit-appearance: none;
-      appearance: none;
-    }
-
-    body {
-      padding-bottom: env(safe-area-inset-bottom);
-    }
-
-    .hero {
-      padding-top: calc(
-        38px + env(safe-area-inset-top)
-      );
-    }
-
-    .button {
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-    }
   </style>
 </head>
 
 <body>
 
-  <div id="pageLoader" class="page-loader">
+  <div
+    id="pageLoader"
+    class="page-loader"
+  >
     <div class="loader-card">
       <div class="loader-spinner"></div>
-      <strong>جاري تحميل نظام الحجز...</strong>
+      <strong>
+        جاري تحميل نظام الحجز...
+      </strong>
     </div>
   </div>
 
   <header class="hero">
     <div class="container hero-content">
-      <div class="hero-badge">نظام حجز إلكتروني</div>
-      <h1 id="siteTitle">طلب حجز</h1>
+
+      <div class="hero-badge">
+        نظام حجز إلكتروني
+      </div>
+
+      <h1 id="siteTitle">
+        طلب حجز
+      </h1>
+
       <p id="siteSubtitle">
         اختر موعد الحجز وعدد الأشخاص والخدمات المطلوبة،
         ثم راجع تفاصيل الطلب والمبلغ الكامل قبل اختيار طريقة الدفع.
       </p>
+
     </div>
   </header>
 
   <main class="container">
 
     <section class="progress-card">
+
       <div class="progress">
 
-        <div class="progress-step active" data-progress="1">
+        <div
+          class="progress-step active"
+          data-progress="1"
+        >
           <div class="progress-number">1</div>
           <span>الحجز</span>
         </div>
 
-        <div class="progress-step" data-progress="2">
+        <div
+          class="progress-step"
+          data-progress="2"
+        >
           <div class="progress-number">2</div>
           <span>الخدمات</span>
         </div>
 
-        <div class="progress-step" data-progress="3">
+        <div
+          class="progress-step"
+          data-progress="3"
+        >
           <div class="progress-number">3</div>
           <span>المراجعة</span>
         </div>
 
-        <div class="progress-step" data-progress="4">
+        <div
+          class="progress-step"
+          data-progress="4"
+        >
           <div class="progress-number">4</div>
           <span>الدفع</span>
         </div>
 
       </div>
+
     </section>
 
     <section class="main-card">
 
-      <div id="mainNotice" class="notice"></div>
+      <div
+        id="mainNotice"
+        class="notice"
+      ></div>
 
-      <div class="step-page active" data-step="1">
+      <!-- الخطوة الأولى -->
+
+      <div
+        class="step-page active"
+        data-step="1"
+      >
 
         <div class="section-header">
-          <div class="step-name">الخطوة الأولى</div>
-          <h2>تفاصيل طلب الحجز</h2>
+
+          <div class="step-name">
+            الخطوة الأولى
+          </div>
+
+          <h2>
+            تفاصيل طلب الحجز
+          </h2>
+
           <p>
             أدخل بيانات التواصل وحدد عدد الأشخاص وموعد الدخول والخروج.
           </p>
+
         </div>
 
-        <h3 class="sub-title">معلومات التواصل</h3>
+        <h3 class="sub-title">
+          معلومات التواصل
+        </h3>
 
         <div class="grid">
 
-          <div class="field full" id="field-fullName">
+          <div
+            class="field full"
+            id="field-fullName"
+          >
+
             <label>
               الاسم الكامل
               <span class="required">*</span>
@@ -903,9 +978,14 @@
             <div class="error-message">
               يرجى إدخال الاسم الكامل.
             </div>
+
           </div>
 
-          <div class="field" id="field-phone">
+          <div
+            class="field"
+            id="field-phone"
+          >
+
             <label>
               رقم الجوال
               <span class="required">*</span>
@@ -923,9 +1003,14 @@
             <div class="error-message">
               يرجى إدخال رقم الجوال.
             </div>
+
           </div>
 
-          <div class="field" id="field-city">
+          <div
+            class="field"
+            id="field-city"
+          >
+
             <label>
               المدينة
               <span class="required">*</span>
@@ -941,10 +1026,14 @@
             <div class="error-message">
               يرجى إدخال المدينة.
             </div>
+
           </div>
 
           <div class="field full">
-            <label>الحي</label>
+
+            <label>
+              الحي
+            </label>
 
             <input
               id="district"
@@ -952,15 +1041,19 @@
               maxlength="100"
               placeholder="مثال: حي النرجس"
             >
+
           </div>
 
         </div>
 
-        <h3 class="sub-title">نوع الحجز</h3>
+        <h3 class="sub-title">
+          نوع الحجز
+        </h3>
 
         <div class="booking-types">
 
           <div class="booking-type">
+
             <input
               id="family"
               type="radio"
@@ -968,27 +1061,41 @@
               value="عائلات"
               checked
             >
-            <label for="family">عائلات</label>
+
+            <label for="family">
+              عائلات
+            </label>
+
           </div>
 
           <div class="booking-type">
+
             <input
               id="men"
               type="radio"
               name="bookingType"
               value="رجال"
             >
-            <label for="men">رجال</label>
+
+            <label for="men">
+              رجال
+            </label>
+
           </div>
 
           <div class="booking-type">
+
             <input
               id="women"
               type="radio"
               name="bookingType"
               value="نساء"
             >
-            <label for="women">نساء</label>
+
+            <label for="women">
+              نساء
+            </label>
+
           </div>
 
         </div>
@@ -996,6 +1103,7 @@
         <div class="grid">
 
           <div class="field">
+
             <label>
               عدد البالغين
               <span class="required">*</span>
@@ -1008,10 +1116,14 @@
               min="1"
               max="100"
             >
+
           </div>
 
           <div class="field">
-            <label>عدد الأطفال</label>
+
+            <label>
+              عدد الأطفال
+            </label>
 
             <input
               id="children"
@@ -1020,81 +1132,130 @@
               min="0"
               max="50"
             >
+
           </div>
 
         </div>
 
-        <h3 class="sub-title">موعد الحجز</h3>
+        <h3 class="sub-title">
+          موعد الحجز
+        </h3>
 
         <div class="grid">
 
-          <div class="field" id="field-checkInDate">
+          <div
+            class="field"
+            id="field-checkInDate"
+          >
+
             <label>
               تاريخ الدخول
               <span class="required">*</span>
             </label>
 
-            <input id="checkInDate" type="date">
+            <input
+              id="checkInDate"
+              type="date"
+            >
 
             <div class="error-message">
               يرجى اختيار تاريخ الدخول.
             </div>
+
           </div>
 
-          <div class="field" id="field-checkInTime">
+          <div
+            class="field"
+            id="field-checkInTime"
+          >
+
             <label>
               وقت الدخول
               <span class="required">*</span>
             </label>
 
-            <input id="checkInTime" type="time" step="60">
+            <input
+              id="checkInTime"
+              type="time"
+              step="60"
+            >
 
             <div class="error-message">
               يرجى اختيار وقت الدخول.
             </div>
+
           </div>
 
-          <div class="field" id="field-checkOutDate">
+          <div
+            class="field"
+            id="field-checkOutDate"
+          >
+
             <label>
               تاريخ الخروج
               <span class="required">*</span>
             </label>
 
-            <input id="checkOutDate" type="date">
+            <input
+              id="checkOutDate"
+              type="date"
+            >
 
             <div class="error-message">
               تاريخ الخروج يجب أن يكون بعد تاريخ الدخول.
             </div>
+
           </div>
 
-          <div class="field" id="field-checkOutTime">
+          <div
+            class="field"
+            id="field-checkOutTime"
+          >
+
             <label>
               وقت الخروج
               <span class="required">*</span>
             </label>
 
-            <input id="checkOutTime" type="time" step="60">
+            <input
+              id="checkOutTime"
+              type="time"
+              step="60"
+            >
 
             <div class="error-message">
               يرجى اختيار وقت الخروج.
             </div>
+
           </div>
 
           <div class="field full">
-            <label>ملاحظات أو طلبات خاصة</label>
+
+            <label>
+              ملاحظات أو طلبات خاصة
+            </label>
 
             <textarea
               id="notes"
               maxlength="5000"
               placeholder="اكتب أي ملاحظات أو طلبات خاصة..."
             ></textarea>
+
           </div>
 
         </div>
 
         <div class="prices-panel">
-          <div class="prices-title">أسعار الحجز</div>
-          <div id="pricesContainer" class="prices-body"></div>
+
+          <div class="prices-title">
+            أسعار الحجز
+          </div>
+
+          <div
+            id="pricesContainer"
+            class="prices-body"
+          ></div>
+
         </div>
 
         <div class="price-note">
@@ -1103,6 +1264,7 @@
         </div>
 
         <div class="navigation-buttons">
+
           <button
             class="button button-primary"
             type="button"
@@ -1110,21 +1272,45 @@
           >
             التالي
           </button>
+
         </div>
 
       </div>
 
-      <div class="step-page" data-step="2">
+      <!-- الخطوة الثانية -->
+
+      <div
+        class="step-page"
+        data-step="2"
+      >
 
         <div class="section-header">
-          <div class="step-name">الخطوة الثانية</div>
-          <h2>الخدمات الإضافية</h2>
+
+          <div class="step-name">
+            الخطوة الثانية
+          </div>
+
+          <h2>
+            الخدمات الإضافية
+          </h2>
+
           <p>
-            اختر الخدمات المطلوبة أو حدد بدون خدمات إضافية.
+            يجب اختيار خدمة واحدة على الأقل أو تحديد بدون خدمات إضافية.
           </p>
+
         </div>
 
-        <div id="servicesContainer" class="services-list"></div>
+        <div
+          id="servicesContainer"
+          class="services-list"
+        ></div>
+
+        <div
+          id="servicesValidation"
+          class="services-validation"
+        >
+          يجب اختيار خدمة واحدة على الأقل أو تحديد «بدون خدمات إضافية».
+        </div>
 
         <div class="navigation-buttons">
 
@@ -1139,7 +1325,7 @@
           <button
             class="button button-primary"
             type="button"
-            onclick="goToStep(3)"
+            onclick="continueToReview()"
           >
             التالي
           </button>
@@ -1148,18 +1334,34 @@
 
       </div>
 
-      <div class="step-page" data-step="3">
+      <!-- الخطوة الثالثة -->
+
+      <div
+        class="step-page"
+        data-step="3"
+      >
 
         <div class="section-header">
-          <div class="step-name">الخطوة الثالثة</div>
-          <h2>مراجعة طلب الحجز</h2>
+
+          <div class="step-name">
+            الخطوة الثالثة
+          </div>
+
+          <h2>
+            مراجعة طلب الحجز
+          </h2>
+
           <p>
-            راجع البيانات، ويمكنك الرجوع للخطوات السابقة لإجراء أي تعديل.
+            راجع البيانات ويمكنك الرجوع لإجراء أي تعديل.
           </p>
+
         </div>
 
         <div class="summary-box">
-          <div class="summary-title">تفاصيل الحجز</div>
+
+          <div class="summary-title">
+            تفاصيل الحجز
+          </div>
 
           <div class="summary-content">
 
@@ -1194,10 +1396,14 @@
             </div>
 
           </div>
+
         </div>
 
         <div class="summary-box">
-          <div class="summary-title">الموعد والخدمات</div>
+
+          <div class="summary-title">
+            الموعد والخدمات
+          </div>
 
           <div class="summary-content">
 
@@ -1222,6 +1428,7 @@
             </div>
 
           </div>
+
         </div>
 
         <div class="amount-card">
@@ -1236,15 +1443,23 @@
             <strong id="servicesTotal">—</strong>
           </div>
 
-          <div id="insuranceAmountRow" class="amount-row">
+          <div
+            id="insuranceAmountRow"
+            class="amount-row"
+          >
+
             <span>
               التأمين المسترد
+
               <small class="small-note">
                 يعاد بعد انتهاء الحجز وفحص المكان
               </small>
             </span>
 
-            <strong id="insuranceTotal">—</strong>
+            <strong id="insuranceTotal">
+              —
+            </strong>
+
           </div>
 
           <div class="amount-row total">
@@ -1254,17 +1469,28 @@
 
         </div>
 
-        <div id="insuranceBox" class="insurance-box">
+        <div
+          id="insuranceBox"
+          class="insurance-box"
+        >
 
-          <h3 id="insuranceTitle">تفاصيل التأمين المسترد</h3>
+          <h3 id="insuranceTitle">
+            تفاصيل التأمين المسترد
+          </h3>
+
           <p id="insuranceDescription"></p>
 
           <label class="agreement">
-            <input id="insuranceAgreement" type="checkbox">
+
+            <input
+              id="insuranceAgreement"
+              type="checkbox"
+            >
 
             <span>
               قرأت شروط التأمين والاسترجاع وأوافق عليها.
             </span>
+
           </label>
 
         </div>
@@ -1292,19 +1518,35 @@
 
       </div>
 
-      <div class="step-page" data-step="4">
+      <!-- الخطوة الرابعة -->
+
+      <div
+        class="step-page"
+        data-step="4"
+      >
 
         <div class="section-header">
-          <div class="step-name">الخطوة الرابعة</div>
-          <h2>اختر طريقة الدفع</h2>
+
+          <div class="step-name">
+            الخطوة الرابعة
+          </div>
+
+          <h2>
+            اختر طريقة الدفع
+          </h2>
+
           <p>
             اختر الطريقة المناسبة لإكمال عملية الدفع.
           </p>
+
         </div>
 
         <div class="payment-list">
 
-          <div id="cardPaymentBox" class="payment-item">
+          <div
+            id="cardPaymentBox"
+            class="payment-item"
+          >
 
             <input
               id="cardPayment"
@@ -1316,11 +1558,15 @@
             <label for="cardPayment">
 
               <div class="payment-text">
-                <strong id="cardPaymentName">بطاقة ائتمان</strong>
+
+                <strong id="cardPaymentName">
+                  بطاقة ائتمان
+                </strong>
 
                 <small id="cardPaymentDescription">
                   الدفع باستخدام بطاقة بنكية عبر بوابة دفع آمنة.
                 </small>
+
               </div>
 
               <div class="payment-radio"></div>
@@ -1333,7 +1579,10 @@
 
           </div>
 
-          <div id="bankPaymentBox" class="payment-item">
+          <div
+            id="bankPaymentBox"
+            class="payment-item"
+          >
 
             <input
               id="bankPayment"
@@ -1345,11 +1594,15 @@
             <label for="bankPayment">
 
               <div class="payment-text">
-                <strong id="bankPaymentName">تحويل بنكي</strong>
+
+                <strong id="bankPaymentName">
+                  تحويل بنكي
+                </strong>
 
                 <small id="bankPaymentDescription">
                   سيتم تحويلك إلى واتساب لإكمال عملية التحويل البنكي.
                 </small>
+
               </div>
 
               <div class="payment-radio"></div>
@@ -1365,6 +1618,7 @@
         </div>
 
         <div class="amount-card">
+
           <div
             class="amount-row total"
             style="border-top:0;margin-top:0;padding-top:0"
@@ -1372,6 +1626,7 @@
             <span>المبلغ المطلوب</span>
             <strong id="paymentGrandTotal">—</strong>
           </div>
+
         </div>
 
         <div class="navigation-buttons">
@@ -1407,7 +1662,6 @@
     let currentBookingNumber = "";
     let currentCalculation = null;
     let bookingCreated = false;
-
     let bookingRequestRunning = false;
     let paymentRequestRunning = false;
 
@@ -1423,12 +1677,20 @@
     const checkOutTime =
       document.getElementById("checkOutTime");
 
-    function showNotice(message, type = "error") {
+    function showNotice(
+      message,
+      type = "error"
+    ) {
       const notice =
-        document.getElementById("mainNotice");
+        document.getElementById(
+          "mainNotice"
+        );
 
-      notice.textContent = message;
-      notice.className = `notice show ${type}`;
+      notice.textContent =
+        message;
+
+      notice.className =
+        `notice show ${type}`;
 
       notice.scrollIntoView({
         behavior: "smooth",
@@ -1438,82 +1700,53 @@
 
     function hideNotice() {
       const notice =
-        document.getElementById("mainNotice");
+        document.getElementById(
+          "mainNotice"
+        );
 
-      notice.className = "notice";
-      notice.textContent = "";
+      notice.className =
+        "notice";
+
+      notice.textContent =
+        "";
     }
 
-    function formatMoney(value) {
-      return `${Number(value || 0).toLocaleString("en-US")} ريال`;
-    }
+    function safeCustomerText(
+      value,
+      fallback = ""
+    ) {
+      const text =
+        String(
+          value == null
+            ? ""
+            : value
+        ).trim();
 
-    function formatDate(dateValue) {
-      if (!dateValue) {
-        return "—";
+      if (!text) {
+        return fallback;
       }
 
-      const parts =
-        dateValue.split("-");
-
-      if (parts.length !== 3) {
-        return dateValue;
-      }
-
-      return (
-        `${parts[2]}-` +
-        `${parts[1]}-` +
-        `${parts[0]}`
-      );
-    }
-
-    function formatArabicTime(timeValue) {
-      if (!timeValue) {
-        return "—";
-      }
-
-      const parts = timeValue.split(":");
-
-      let hour = Number(parts[0]);
-      const minute = parts[1];
-      let period = "صباحًا";
-
-      if (hour === 12) {
-        period = "ظهرًا";
-      } else if (hour > 12) {
-        period = "مساءً";
-        hour -= 12;
-      } else if (hour === 0) {
-        hour = 12;
-      }
-
-      return `${hour}:${minute} ${period}`;
-    }
-
-    function getDateObject(value) {
-      return new Date(`${value}T00:00:00`);
-    }
-
-    function makeBookingNumber() {
-      if (!currentBookingNumber) {
-        currentBookingNumber =
-          `BK-${Date.now().toString().slice(-6)}` +
-          `${Math.floor(100 + Math.random() * 900)}`;
-      }
-
-      return currentBookingNumber;
-    }
-
-    function setMinimumDate() {
-      const today = new Date();
-
-      const value =
-        `${today.getFullYear()}-` +
-        `${String(today.getMonth() + 1).padStart(2, "0")}-` +
-        `${String(today.getDate()).padStart(2, "0")}`;
-
-      checkInDate.min = value;
-      checkOutDate.min = value;
+      return text
+        .replace(
+          /بوت\s*الإدارة/gi,
+          "الدعم"
+        )
+        .replace(
+          /بوت\s*الدفع/gi,
+          "نظام الدفع"
+        )
+        .replace(
+          /لوحة\s*الإدارة/gi,
+          "الدعم"
+        )
+        .replace(
+          /البوت/gi,
+          "النظام"
+        )
+        .replace(
+          /بوت/gi,
+          "النظام"
+        );
     }
 
     async function fetchWithTimeout(
@@ -1526,17 +1759,26 @@
 
       const timeoutId =
         setTimeout(
-          () => controller.abort(),
+          () =>
+            controller.abort(),
           timeoutMs
         );
 
       try {
-        return await fetch(url, {
-          ...options,
-          signal: controller.signal
-        });
+        return await fetch(
+          url,
+          {
+            ...options,
+            signal:
+              controller.signal
+          }
+        );
       } catch (error) {
-        if (error?.name === "AbortError") {
+        if (
+          error &&
+          error.name ===
+            "AbortError"
+        ) {
           throw new Error(
             "استغرق الاتصال وقتًا طويلًا، يرجى المحاولة مرة أخرى."
           );
@@ -1544,8 +1786,129 @@
 
         throw error;
       } finally {
-        clearTimeout(timeoutId);
+        clearTimeout(
+          timeoutId
+        );
       }
+    }
+
+    function formatMoney(value) {
+      return (
+        `${Number(value || 0)
+          .toLocaleString(
+            "en-US"
+          )} ريال`
+      );
+    }
+
+    function formatDate(
+      dateValue
+    ) {
+      if (!dateValue) {
+        return "—";
+      }
+
+      const parts =
+        dateValue.split("-");
+
+      if (
+        parts.length !== 3
+      ) {
+        return dateValue;
+      }
+
+      return (
+        `${parts[2]}-` +
+        `${parts[1]}-` +
+        `${parts[0]}`
+      );
+    }
+
+    function formatArabicTime(
+      timeValue
+    ) {
+      if (!timeValue) {
+        return "—";
+      }
+
+      const parts =
+        timeValue.split(":");
+
+      let hour =
+        Number(parts[0]);
+
+      const minute =
+        parts[1];
+
+      let period =
+        "صباحًا";
+
+      if (hour === 12) {
+        period =
+          "ظهرًا";
+      } else if (
+        hour > 12
+      ) {
+        period =
+          "مساءً";
+
+        hour -= 12;
+      } else if (
+        hour === 0
+      ) {
+        hour = 12;
+      }
+
+      return (
+        `${hour}:${minute} ` +
+        `${period}`
+      );
+    }
+
+    function getDateObject(
+      value
+    ) {
+      return new Date(
+        `${value}T00:00:00`
+      );
+    }
+
+    function makeBookingNumber() {
+      if (
+        !currentBookingNumber
+      ) {
+        currentBookingNumber =
+          `BK-` +
+          `${Date.now()
+            .toString()
+            .slice(-7)}` +
+          `${Math.floor(
+            100 +
+            Math.random() * 900
+          )}`;
+      }
+
+      return currentBookingNumber;
+    }
+
+    function setMinimumDate() {
+      const today =
+        new Date();
+
+      const value =
+        `${today.getFullYear()}-` +
+        `${String(
+          today.getMonth() + 1
+        ).padStart(2, "0")}-` +
+        `${String(
+          today.getDate()
+        ).padStart(2, "0")}`;
+
+      checkInDate.min =
+        value;
+
+      checkOutDate.min =
+        value;
     }
 
     async function loadStoreConfig() {
@@ -1553,25 +1916,34 @@
         await fetchWithTimeout(
           "/api/config",
           {
-            cache: "no-store"
+            cache:
+              "no-store"
           },
           15000
         );
 
-      const result = await response.json();
+      const result =
+        await response.json();
 
-      if (!response.ok || !result.ok) {
+      if (
+        !response.ok ||
+        !result.ok
+      ) {
         throw new Error(
           result.message ||
           "تعذر تحميل إعدادات الموقع."
         );
       }
 
-      STORE_CONFIG = result;
+      STORE_CONFIG =
+        result;
 
-      if (!STORE_CONFIG.site.enabled) {
+      if (
+        !STORE_CONFIG.site.enabled
+      ) {
         throw new Error(
-          STORE_CONFIG.site.maintenanceMessage ||
+          STORE_CONFIG.site
+            .maintenanceMessage ||
           "الموقع تحت الصيانة حاليًا."
         );
       }
@@ -1579,47 +1951,52 @@
       applyStoreConfig();
     }
 
-    function safeCustomerText(value, fallback = "") {
-      const text = String(value == null ? "" : value).trim();
-
-      if (!text) {
-        return fallback;
-      }
-
-      return text
-        .replace(/بوت\s*الإدارة/gi, "الدعم")
-        .replace(/بوت\s*الدفع/gi, "نظام الدفع")
-        .replace(/البوت/gi, "النظام")
-        .replace(/بوت/gi, "النظام")
-        .replace(/لوحة\s*الإدارة/gi, "الدعم");
-    }
-
     function applyStoreConfig() {
       document.title =
-        STORE_CONFIG.site.title || "طلب حجز";
+        safeCustomerText(
+          STORE_CONFIG.site.title,
+          "طلب حجز"
+        );
 
       document.getElementById(
         "siteTitle"
       ).textContent =
-        STORE_CONFIG.site.title || "طلب حجز";
+        safeCustomerText(
+          STORE_CONFIG.site.title,
+          "طلب حجز"
+        );
 
       document.getElementById(
         "siteSubtitle"
       ).textContent =
-        STORE_CONFIG.site.subtitle || "";
+        safeCustomerText(
+          STORE_CONFIG.site.subtitle,
+          ""
+        );
 
       document.getElementById(
         "insuranceTitle"
       ).textContent =
-        STORE_CONFIG.insurance.title || "";
+        safeCustomerText(
+          STORE_CONFIG
+            .insurance.title,
+          ""
+        );
 
       document.getElementById(
         "insuranceDescription"
       ).textContent =
-        STORE_CONFIG.insurance.description || "";
+        safeCustomerText(
+          STORE_CONFIG
+            .insurance.description,
+          ""
+        );
 
       const insuranceVisible =
-        Boolean(STORE_CONFIG.insurance.visible);
+        Boolean(
+          STORE_CONFIG
+            .insurance.visible
+        );
 
       document.getElementById(
         "insuranceBox"
@@ -1639,7 +2016,8 @@
         "cardPaymentName"
       ).textContent =
         safeCustomerText(
-          STORE_CONFIG.payment.card.name,
+          STORE_CONFIG
+            .payment.card.name,
           "بطاقة ائتمان"
         );
 
@@ -1647,7 +2025,9 @@
         "cardPaymentDescription"
       ).textContent =
         safeCustomerText(
-          STORE_CONFIG.payment.card.description,
+          STORE_CONFIG
+            .payment.card
+            .description,
           "الدفع باستخدام بطاقة بنكية عبر بوابة دفع آمنة."
         );
 
@@ -1655,7 +2035,8 @@
         "bankPaymentName"
       ).textContent =
         safeCustomerText(
-          STORE_CONFIG.payment.bank.name,
+          STORE_CONFIG
+            .payment.bank.name,
           "تحويل بنكي"
         );
 
@@ -1663,7 +2044,9 @@
         "bankPaymentDescription"
       ).textContent =
         safeCustomerText(
-          STORE_CONFIG.payment.bank.description,
+          STORE_CONFIG
+            .payment.bank
+            .description,
           "سيتم تحويلك إلى واتساب لإكمال عملية التحويل البنكي."
         );
 
@@ -1671,14 +2054,16 @@
         "cardPaymentBox"
       ).classList.toggle(
         "hidden",
-        !STORE_CONFIG.payment.card.visible
+        !STORE_CONFIG
+          .payment.card.visible
       );
 
       document.getElementById(
         "bankPaymentBox"
       ).classList.toggle(
         "hidden",
-        !STORE_CONFIG.payment.bank.visible
+        !STORE_CONFIG
+          .payment.bank.visible
       );
 
       renderPrices();
@@ -1686,7 +2071,8 @@
     }
 
     function renderPrices() {
-      const pricing = STORE_CONFIG.pricing;
+      const pricing =
+        STORE_CONFIG.pricing;
 
       const rows = [
         pricing.weekdays,
@@ -1695,74 +2081,142 @@
       ];
 
       const periods = [
-        ...(pricing.occasions.dates || []),
-        ...(pricing.seasons.dates || [])
+        ...(
+          pricing.occasions
+            .dates || []
+        ),
+        ...(
+          pricing.seasons
+            .dates || []
+        )
       ];
 
-      const basicRows = rows
-        .filter(item => item.visible)
-        .map(item => `
-          <div class="price-line">
-            <span>${escapeHtml(item.name)}</span>
-            <strong>${formatMoney(item.price)}</strong>
-          </div>
-        `)
-        .join("");
+      const basicRows =
+        rows
+          .filter(
+            item =>
+              item.visible
+          )
+          .map(
+            item => `
+              <div class="price-line">
+                <span>
+                  ${escapeHtml(
+                    item.name
+                  )}
+                </span>
 
-      const periodRows = periods
-        .filter(item => item.enabled)
-        .map(item => `
-          <div class="price-line">
-            <span>${escapeHtml(item.name)}</span>
-            <strong>${formatMoney(item.price)}</strong>
-          </div>
-        `)
-        .join("");
+                <strong>
+                  ${formatMoney(
+                    item.price
+                  )}
+                </strong>
+              </div>
+            `
+          )
+          .join("");
+
+      const periodRows =
+        periods
+          .filter(
+            item =>
+              item.enabled
+          )
+          .map(
+            item => `
+              <div class="price-line">
+                <span>
+                  ${escapeHtml(
+                    item.name
+                  )}
+                </span>
+
+                <strong>
+                  ${formatMoney(
+                    item.price
+                  )}
+                </strong>
+              </div>
+            `
+          )
+          .join("");
 
       document.getElementById(
         "pricesContainer"
       ).innerHTML =
-        basicRows + periodRows;
+        basicRows +
+        periodRows;
     }
 
     function renderServices() {
       const services =
-        (STORE_CONFIG.services || [])
-          .filter(service => service.visible);
+        (
+          STORE_CONFIG.services ||
+          []
+        ).filter(
+          service =>
+            service.visible
+        );
 
-      const html = services.map(service => `
-        <label
-          class="service-item"
-          data-service-id="${service.id}"
-        >
-          <input
-            class="service-checkbox"
-            type="checkbox"
-            value="${service.id}"
-            data-name="${escapeAttribute(service.name)}"
-            data-price="${Number(service.price)}"
-          >
+      const html =
+        services
+          .map(
+            service => `
+              <label
+                class="service-item"
+                data-service-id="${service.id}"
+              >
+                <input
+                  class="service-checkbox"
+                  type="checkbox"
+                  value="${service.id}"
+                  data-name="${escapeAttribute(
+                    service.name
+                  )}"
+                  data-price="${Number(
+                    service.price
+                  )}"
+                >
 
-          <span class="service-info">
-            <strong>${escapeHtml(service.name)}</strong>
-            <small>${escapeHtml(service.description)}</small>
-          </span>
+                <span class="service-info">
+                  <strong>
+                    ${escapeHtml(
+                      service.name
+                    )}
+                  </strong>
 
-          <span class="service-price">
-            ${formatMoney(service.price)}
-          </span>
-        </label>
-      `).join("");
+                  <small>
+                    ${escapeHtml(
+                      service.description
+                    )}
+                  </small>
+                </span>
+
+                <span class="service-price">
+                  ${formatMoney(
+                    service.price
+                  )}
+                </span>
+              </label>
+            `
+          )
+          .join("");
 
       const noServicesHtml = `
         <label
           id="noServicesItem"
           class="service-item no-services-item"
         >
-          <input id="noServices" type="checkbox">
+          <input
+            id="noServices"
+            type="checkbox"
+          >
 
           <span class="service-info">
-            <strong>بدون خدمات إضافية</strong>
+            <strong>
+              بدون خدمات إضافية
+            </strong>
+
             <small>
               متابعة الحجز دون إضافة أي خدمة.
             </small>
@@ -1777,7 +2231,8 @@
       document.getElementById(
         "servicesContainer"
       ).innerHTML =
-        html + noServicesHtml;
+        html +
+        noServicesHtml;
 
       bindServiceEvents();
     }
@@ -1789,33 +2244,45 @@
         );
 
       const noServices =
-        document.getElementById("noServices");
-
-      serviceCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener(
-          "change",
-          () => {
-            if (checkbox.checked) {
-              noServices.checked = false;
-            }
-
-            bookingCreated = false;
-            updateServiceStyles();
-          }
+        document.getElementById(
+          "noServices"
         );
-      });
+
+      serviceCheckboxes.forEach(
+        checkbox => {
+          checkbox.addEventListener(
+            "change",
+            () => {
+              if (
+                checkbox.checked
+              ) {
+                noServices.checked =
+                  false;
+              }
+
+              clearServicesValidation();
+              bookingCreated = false;
+              updateServiceStyles();
+            }
+          );
+        }
+      );
 
       noServices.addEventListener(
         "change",
         () => {
-          if (noServices.checked) {
+          if (
+            noServices.checked
+          ) {
             serviceCheckboxes.forEach(
               checkbox => {
-                checkbox.checked = false;
+                checkbox.checked =
+                  false;
               }
             );
           }
 
+          clearServicesValidation();
           bookingCreated = false;
           updateServiceStyles();
         }
@@ -1826,18 +2293,100 @@
 
     function updateServiceStyles() {
       document
-        .querySelectorAll(".service-item")
-        .forEach(item => {
-          const checkbox =
-            item.querySelector(
-              'input[type="checkbox"]'
-            );
+        .querySelectorAll(
+          ".service-item"
+        )
+        .forEach(
+          item => {
+            const checkbox =
+              item.querySelector(
+                'input[type="checkbox"]'
+              );
 
-          item.classList.toggle(
-            "selected",
-            Boolean(checkbox?.checked)
+            item.classList.toggle(
+              "selected",
+              Boolean(
+                checkbox &&
+                checkbox.checked
+              )
+            );
+          }
+        );
+    }
+
+    function clearServicesValidation() {
+      document.getElementById(
+        "servicesContainer"
+      ).classList.remove(
+        "error"
+      );
+
+      document.getElementById(
+        "servicesValidation"
+      ).classList.remove(
+        "show"
+      );
+    }
+
+    function validateServicesStep() {
+      clearServicesValidation();
+
+      const selectedCount =
+        document.querySelectorAll(
+          ".service-checkbox:checked"
+        ).length;
+
+      const noServices =
+        Boolean(
+          document.getElementById(
+            "noServices"
+          ) &&
+          document.getElementById(
+            "noServices"
+          ).checked
+        );
+
+      if (
+        selectedCount === 0 &&
+        !noServices
+      ) {
+        const container =
+          document.getElementById(
+            "servicesContainer"
           );
+
+        const message =
+          document.getElementById(
+            "servicesValidation"
+          );
+
+        container.classList.add(
+          "error"
+        );
+
+        message.classList.add(
+          "show"
+        );
+
+        container.scrollIntoView({
+          behavior: "smooth",
+          block: "center"
         });
+
+        return false;
+      }
+
+      return true;
+    }
+
+    function continueToReview() {
+      if (
+        !validateServicesStep()
+      ) {
+        return;
+      }
+
+      goToStep(3);
     }
 
     function getSelectedServices() {
@@ -1845,71 +2394,133 @@
         ...document.querySelectorAll(
           ".service-checkbox:checked"
         )
-      ].map(checkbox => ({
-        id: Number(checkbox.value),
-        name: checkbox.dataset.name,
-        price: Number(checkbox.dataset.price)
-      }));
+      ].map(
+        checkbox => ({
+          id:
+            Number(
+              checkbox.value
+            ),
+
+          name:
+            checkbox.dataset.name,
+
+          price:
+            Number(
+              checkbox.dataset.price
+            )
+        })
+      );
     }
 
     function getBookingType() {
-      return document.querySelector(
-        'input[name="bookingType"]:checked'
-      )?.value || "عائلات";
+      const selected =
+        document.querySelector(
+          'input[name="bookingType"]:checked'
+        );
+
+      return selected
+        ? selected.value
+        : "عائلات";
     }
 
-    function dateInsideRange(date, range) {
+    function dateInsideRange(
+      date,
+      range
+    ) {
       if (!range.enabled) {
         return false;
       }
 
-      const value = date.getTime();
-      const start =
-        getDateObject(range.start).getTime();
-      const end =
-        getDateObject(range.end).getTime();
+      const value =
+        date.getTime();
 
-      return value >= start && value <= end;
+      const start =
+        getDateObject(
+          range.start
+        ).getTime();
+
+      const end =
+        getDateObject(
+          range.end
+        ).getTime();
+
+      return (
+        value >= start &&
+        value <= end
+      );
     }
 
-    function getPriceForDate(date) {
-      const pricing = STORE_CONFIG.pricing;
+    function getPriceForDate(
+      date
+    ) {
+      const pricing =
+        STORE_CONFIG.pricing;
 
       const season =
-        (pricing.seasons.dates || [])
-          .find(range =>
-            dateInsideRange(date, range)
-          );
+        (
+          pricing.seasons
+            .dates || []
+        ).find(
+          range =>
+            dateInsideRange(
+              date,
+              range
+            )
+        );
 
       if (season) {
         return {
-          price: Number(season.price),
-          type: season.name
+          price:
+            Number(
+              season.price
+            ),
+
+          type:
+            season.name
         };
       }
 
       const occasion =
-        (pricing.occasions.dates || [])
-          .find(range =>
-            dateInsideRange(date, range)
-          );
+        (
+          pricing.occasions
+            .dates || []
+        ).find(
+          range =>
+            dateInsideRange(
+              date,
+              range
+            )
+        );
 
       if (occasion) {
         return {
-          price: Number(occasion.price),
-          type: occasion.name
+          price:
+            Number(
+              occasion.price
+            ),
+
+          type:
+            occasion.name
         };
       }
 
-      const day = date.getDay();
+      const day =
+        date.getDay();
 
       if (
         day === 4 &&
         pricing.thursday.visible
       ) {
         return {
-          price: Number(pricing.thursday.price),
-          type: pricing.thursday.name
+          price:
+            Number(
+              pricing
+                .thursday.price
+            ),
+
+          type:
+            pricing
+              .thursday.name
         };
       }
 
@@ -1918,14 +2529,28 @@
         pricing.friday.visible
       ) {
         return {
-          price: Number(pricing.friday.price),
-          type: pricing.friday.name
+          price:
+            Number(
+              pricing
+                .friday.price
+            ),
+
+          type:
+            pricing
+              .friday.name
         };
       }
 
       return {
-        price: Number(pricing.weekdays.price),
-        type: pricing.weekdays.name
+        price:
+          Number(
+            pricing
+              .weekdays.price
+          ),
+
+        type:
+          pricing
+            .weekdays.name
       };
     }
 
@@ -1935,14 +2560,24 @@
 
       const servicesTotal =
         services.reduce(
-          (sum, service) =>
-            sum + Number(service.price),
+          (
+            sum,
+            service
+          ) =>
+            sum +
+            Number(
+              service.price
+            ),
           0
         );
 
       const insuranceTotal =
-        STORE_CONFIG.insurance.visible
-          ? Number(STORE_CONFIG.insurance.amount)
+        STORE_CONFIG
+          .insurance.visible
+          ? Number(
+              STORE_CONFIG
+                .insurance.amount
+            )
           : 0;
 
       if (
@@ -1964,10 +2599,14 @@
       }
 
       const start =
-        getDateObject(checkInDate.value);
+        getDateObject(
+          checkInDate.value
+        );
 
       const end =
-        getDateObject(checkOutDate.value);
+        getDateObject(
+          checkOutDate.value
+        );
 
       if (!(end > start)) {
         return {
@@ -1983,11 +2622,16 @@
       }
 
       const nights = [];
-      const cursor = new Date(start);
+      const cursor =
+        new Date(start);
 
-      while (cursor < end) {
+      while (
+        cursor < end
+      ) {
         const pricing =
-          getPriceForDate(cursor);
+          getPriceForDate(
+            cursor
+          );
 
         const dateValue =
           `${cursor.getFullYear()}-` +
@@ -1999,9 +2643,16 @@
           ).padStart(2, "0")}`;
 
         nights.push({
-          date: dateValue,
-          price: Number(pricing.price),
-          type: pricing.type
+          date:
+            dateValue,
+
+          price:
+            Number(
+              pricing.price
+            ),
+
+          type:
+            pricing.type
         });
 
         cursor.setDate(
@@ -2011,19 +2662,27 @@
 
       const stayTotal =
         nights.reduce(
-          (sum, night) =>
-            sum + Number(night.price),
+          (
+            sum,
+            night
+          ) =>
+            sum +
+            Number(
+              night.price
+            ),
           0
         );
 
       return {
         ready: true,
         nights,
-        nightsCount: nights.length,
+        nightsCount:
+          nights.length,
         stayTotal,
         services,
         servicesTotal,
         insuranceTotal,
+
         total:
           stayTotal +
           servicesTotal +
@@ -2033,10 +2692,16 @@
 
     function clearFieldErrors() {
       document
-        .querySelectorAll(".field.error")
-        .forEach(field => {
-          field.classList.remove("error");
-        });
+        .querySelectorAll(
+          ".field.error"
+        )
+        .forEach(
+          field => {
+            field.classList.remove(
+              "error"
+            );
+          }
+        );
     }
 
     function showFieldError(
@@ -2052,14 +2717,19 @@
         return;
       }
 
-      field.classList.add("error");
+      field.classList.add(
+        "error"
+      );
 
       const messageElement =
         field.querySelector(
           ".error-message"
         );
 
-      if (messageElement && message) {
+      if (
+        messageElement &&
+        message
+      ) {
         messageElement.textContent =
           message;
       }
@@ -2091,6 +2761,7 @@
           "fullName",
           "يرجى إدخال الاسم الكامل."
         );
+
         valid = false;
       }
 
@@ -2099,6 +2770,7 @@
           "phone",
           "يرجى إدخال رقم الجوال."
         );
+
         valid = false;
       }
 
@@ -2107,38 +2779,51 @@
           "city",
           "يرجى إدخال المدينة."
         );
+
         valid = false;
       }
 
-      if (!checkInDate.value) {
+      if (
+        !checkInDate.value
+      ) {
         showFieldError(
           "checkInDate",
           "يرجى اختيار تاريخ الدخول."
         );
+
         valid = false;
       }
 
-      if (!checkInTime.value) {
+      if (
+        !checkInTime.value
+      ) {
         showFieldError(
           "checkInTime",
           "يرجى اختيار وقت الدخول."
         );
+
         valid = false;
       }
 
-      if (!checkOutDate.value) {
+      if (
+        !checkOutDate.value
+      ) {
         showFieldError(
           "checkOutDate",
           "يرجى اختيار تاريخ الخروج."
         );
+
         valid = false;
       }
 
-      if (!checkOutTime.value) {
+      if (
+        !checkOutTime.value
+      ) {
         showFieldError(
           "checkOutTime",
           "يرجى اختيار وقت الخروج."
         );
+
         valid = false;
       }
 
@@ -2167,12 +2852,17 @@
       }
 
       if (!valid) {
-        document
-          .querySelector(".field.error")
-          ?.scrollIntoView({
+        const firstError =
+          document.querySelector(
+            ".field.error"
+          );
+
+        if (firstError) {
+          firstError.scrollIntoView({
             behavior: "smooth",
             block: "center"
           });
+        }
       }
 
       return valid;
@@ -2223,11 +2913,13 @@
 
       document.getElementById(
         "summaryName"
-      ).textContent = name;
+      ).textContent =
+        name;
 
       document.getElementById(
         "summaryPhone"
-      ).textContent = phone;
+      ).textContent =
+        phone;
 
       document.getElementById(
         "summaryLocation"
@@ -2245,38 +2937,55 @@
         "summaryPeople"
       ).textContent =
         `${adults + children} أشخاص — ` +
-        `${adults} بالغ، ${children} طفل`;
+        `${adults} بالغ، ` +
+        `${children} طفل`;
 
       document.getElementById(
         "summaryNotes"
       ).textContent =
-        notes || "لا توجد";
+        notes ||
+        "لا توجد";
 
       document.getElementById(
         "summaryCheckIn"
       ).textContent =
-        `${formatDate(checkInDate.value)} — ` +
-        `${formatArabicTime(checkInTime.value)}`;
+        `${formatDate(
+          checkInDate.value
+        )} — ` +
+        `${formatArabicTime(
+          checkInTime.value
+        )}`;
 
       document.getElementById(
         "summaryCheckOut"
       ).textContent =
-        `${formatDate(checkOutDate.value)} — ` +
-        `${formatArabicTime(checkOutTime.value)}`;
+        `${formatDate(
+          checkOutDate.value
+        )} — ` +
+        `${formatArabicTime(
+          checkOutTime.value
+        )}`;
 
       document.getElementById(
         "summaryNights"
       ).textContent =
-        currentCalculation.nightsCount === 1
+        currentCalculation
+          .nightsCount === 1
           ? "ليلة واحدة"
-          : `${currentCalculation.nightsCount} ليالٍ`;
+          : `${currentCalculation
+              .nightsCount} ليالٍ`;
 
       document.getElementById(
         "summaryServices"
       ).textContent =
-        currentCalculation.services.length
-          ? currentCalculation.services
-              .map(service => service.name)
+        currentCalculation
+          .services.length
+          ? currentCalculation
+              .services
+              .map(
+                service =>
+                  service.name
+              )
               .join("، ")
           : "بدون خدمات إضافية";
 
@@ -2284,21 +2993,24 @@
         "stayTotal"
       ).textContent =
         formatMoney(
-          currentCalculation.stayTotal
+          currentCalculation
+            .stayTotal
         );
 
       document.getElementById(
         "servicesTotal"
       ).textContent =
         formatMoney(
-          currentCalculation.servicesTotal
+          currentCalculation
+            .servicesTotal
         );
 
       document.getElementById(
         "insuranceTotal"
       ).textContent =
         formatMoney(
-          currentCalculation.insuranceTotal
+          currentCalculation
+            .insuranceTotal
         );
 
       document.getElementById(
@@ -2316,28 +3028,46 @@
         );
     }
 
-    function updateProgress(step) {
+    function updateProgress(
+      step
+    ) {
       document
-        .querySelectorAll(".progress-step")
-        .forEach(progressStep => {
-          const number =
-            Number(
-              progressStep.dataset.progress
-            );
+        .querySelectorAll(
+          ".progress-step"
+        )
+        .forEach(
+          progressStep => {
+            const number =
+              Number(
+                progressStep
+                  .dataset
+                  .progress
+              );
 
-          progressStep.classList.remove(
-            "active",
-            "done"
-          );
+            progressStep
+              .classList
+              .remove(
+                "active",
+                "done"
+              );
 
-          if (number < step) {
-            progressStep.classList.add("done");
+            if (
+              number < step
+            ) {
+              progressStep
+                .classList
+                .add("done");
+            }
+
+            if (
+              number === step
+            ) {
+              progressStep
+                .classList
+                .add("active");
+            }
           }
-
-          if (number === step) {
-            progressStep.classList.add("active");
-          }
-        });
+        );
     }
 
     function goToStep(step) {
@@ -2351,28 +3081,50 @@
       }
 
       if (step === 3) {
-        if (!validateFirstStep()) {
+        if (
+          !validateFirstStep()
+        ) {
+          return;
+        }
+
+        if (
+          !validateServicesStep()
+        ) {
           return;
         }
 
         updateReview();
       }
 
-      currentStep = step;
+      currentStep =
+        step;
 
       document
-        .querySelectorAll(".step-page")
-        .forEach(page => {
-          page.classList.remove("active");
-        });
-
-      document
-        .querySelector(
-          `.step-page[data-step="${step}"]`
+        .querySelectorAll(
+          ".step-page"
         )
-        .classList.add("active");
+        .forEach(
+          page => {
+            page.classList.remove(
+              "active"
+            );
+          }
+        );
 
-      updateProgress(step);
+      const target =
+        document.querySelector(
+          `.step-page[data-step="${step}"]`
+        );
+
+      if (target) {
+        target.classList.add(
+          "active"
+        );
+      }
+
+      updateProgress(
+        step
+      );
 
       window.scrollTo({
         top: 0,
@@ -2429,8 +3181,10 @@
 
           adults,
           children,
+
           peopleTotal:
-            adults + children,
+            adults +
+            children,
 
           notes:
             document.getElementById(
@@ -2457,7 +3211,8 @@
             ),
 
           nightsCount:
-            calculation.nightsCount,
+            calculation
+              .nightsCount,
 
           nights:
             calculation.nights,
@@ -2468,13 +3223,16 @@
 
         amounts: {
           stay:
-            calculation.stayTotal,
+            calculation
+              .stayTotal,
 
           services:
-            calculation.servicesTotal,
+            calculation
+              .servicesTotal,
 
           insurance:
-            calculation.insuranceTotal,
+            calculation
+              .insuranceTotal,
 
           total:
             calculation.total
@@ -2482,183 +3240,216 @@
       };
     }
 
-    function wrapCanvasText(
-      context,
-      text,
-      maxWidth
-    ) {
-      const words =
-        String(text || "").split(/\s+/);
-
-      const lines = [];
-      let currentLine = "";
-
-      for (const word of words) {
-        const testLine =
-          currentLine
-            ? `${currentLine} ${word}`
-            : word;
-
-        const width =
-          context.measureText(
-            testLine
-          ).width;
-
-        if (
-          width > maxWidth &&
-          currentLine
-        ) {
-          lines.push(currentLine);
-          currentLine = word;
-        } else {
-          currentLine = testLine;
-        }
-      }
-
-      if (currentLine) {
-        lines.push(currentLine);
-      }
-
-      return lines.length
-        ? lines
-        : [""];
-    }
-
-    function roundRect(
+    function invoiceRoundedRect(
       context,
       x,
       y,
       width,
       height,
       radius,
-      fill
+      fillColor,
+      strokeColor = null,
+      lineWidth = 1
     ) {
-      const r = Math.min(
-        Number(radius) || 0,
-        width / 2,
-        height / 2
-      );
+      const r =
+        Math.min(
+          radius,
+          width / 2,
+          height / 2
+        );
 
       context.beginPath();
-      context.moveTo(x + r, y);
-      context.lineTo(x + width - r, y);
+      context.moveTo(
+        x + r,
+        y
+      );
+
+      context.lineTo(
+        x + width - r,
+        y
+      );
+
       context.quadraticCurveTo(
         x + width,
         y,
         x + width,
         y + r
       );
+
       context.lineTo(
         x + width,
         y + height - r
       );
+
       context.quadraticCurveTo(
         x + width,
         y + height,
         x + width - r,
         y + height
       );
-      context.lineTo(x + r, y + height);
+
+      context.lineTo(
+        x + r,
+        y + height
+      );
+
       context.quadraticCurveTo(
         x,
         y + height,
         x,
         y + height - r
       );
-      context.lineTo(x, y + r);
+
+      context.lineTo(
+        x,
+        y + r
+      );
+
       context.quadraticCurveTo(
         x,
         y,
         x + r,
         y
       );
+
       context.closePath();
 
-      context.fillStyle = fill;
-      context.fill();
+      if (fillColor) {
+        context.fillStyle =
+          fillColor;
+
+        context.fill();
+      }
+
+      if (strokeColor) {
+        context.strokeStyle =
+          strokeColor;
+
+        context.lineWidth =
+          lineWidth;
+
+        context.stroke();
+      }
     }
 
-    function calculateInvoiceHeight(data) {
-      const servicesCount =
-        data.booking.services.length;
+    function splitInvoiceText(
+      context,
+      text,
+      maxWidth
+    ) {
+      const source =
+        String(
+          text || ""
+        ).trim();
 
-      const nightsCount =
-        data.booking.nights.length;
+      if (!source) {
+        return ["—"];
+      }
 
-      const notesLength =
-        data.customer.notes.length;
+      const paragraphs =
+        source.split(/\n+/);
 
-      const noteExtra =
-        Math.ceil(notesLength / 55) * 38;
+      const lines = [];
 
-      return Math.max(
-        1600,
-        1450 +
-        servicesCount * 55 +
-        nightsCount * 45 +
-        noteExtra
+      paragraphs.forEach(
+        paragraph => {
+          const words =
+            paragraph.split(
+              /\s+/
+            );
+
+          let currentLine =
+            "";
+
+          words.forEach(
+            word => {
+              const testLine =
+                currentLine
+                  ? `${currentLine} ${word}`
+                  : word;
+
+              if (
+                context
+                  .measureText(
+                    testLine
+                  ).width >
+                  maxWidth &&
+                currentLine
+              ) {
+                lines.push(
+                  currentLine
+                );
+
+                currentLine =
+                  word;
+              } else {
+                currentLine =
+                  testLine;
+              }
+            }
+          );
+
+          if (currentLine) {
+            lines.push(
+              currentLine
+            );
+          }
+        }
+      );
+
+      return lines.length
+        ? lines
+        : ["—"];
+    }
+
+    function drawInvoiceLines(
+      context,
+      lines,
+      x,
+      y,
+      lineHeight,
+      options = {}
+    ) {
+      context.textAlign =
+        options.align ||
+        "right";
+
+      context.fillStyle =
+        options.color ||
+        "#1c2733";
+
+      context.font =
+        options.font ||
+        "24px Tahoma, Arial";
+
+      lines.forEach(
+        (
+          line,
+          index
+        ) => {
+          context.fillText(
+            line,
+            x,
+            y +
+              index *
+                lineHeight
+          );
+        }
+      );
+
+      return (
+        y +
+        lines.length *
+          lineHeight
       );
     }
 
-    async function createInvoiceImage(
+    function prepareInvoiceLists(
       data
     ) {
-      const canvas =
-        document.createElement("canvas");
-
-      canvas.width = 1200;
-      canvas.height =
-        calculateInvoiceHeight(data);
-
-      const context =
-        canvas.getContext("2d");
-
-      context.direction = "rtl";
-
-      context.fillStyle = "#f4f7f5";
-      context.fillRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
-      );
-
-      let y = 45;
-
-      roundRect(
-        context,
-        55,
-        y,
-        1090,
-        160,
-        30,
-        "#1f705a"
-      );
-
-      context.textAlign = "right";
-      context.fillStyle = "#ffffff";
-      context.font =
-        "bold 43px Tahoma, Arial";
-
-      context.fillText(
-        "فاتورة طلب حجز",
-        1070,
-        y + 65
-      );
-
-      context.font =
-        "25px Tahoma, Arial";
-
-      context.fillText(
-        `رقم الحجز: ${data.bookingNumber}`,
-        1070,
-        y + 112
-      );
-
-      y += 195;
-
       const location =
-        data.customer.district
+        data.customer
+          .district
           ? `${data.customer.city}، ${data.customer.district}`
           : data.customer.city;
 
@@ -2667,347 +3458,999 @@
         `${data.customer.adults} بالغ، ` +
         `${data.customer.children} طفل`;
 
+      const nights =
+        data.booking
+          .nights.length
+          ? data.booking
+              .nights
+              .map(
+                (
+                  night,
+                  index
+                ) => ({
+                  number:
+                    index + 1,
+
+                  title:
+                    `${formatDate(
+                      night.date
+                    )} — ${night.type}`,
+
+                  price:
+                    formatMoney(
+                      night.price
+                    )
+                })
+              )
+          : [
+              {
+                number: 1,
+                title:
+                  "لا توجد تفاصيل لليالي",
+                price: "—"
+              }
+            ];
+
+      const services =
+        data.booking
+          .services.length
+          ? data.booking
+              .services
+              .map(
+                (
+                  service,
+                  index
+                ) => ({
+                  number:
+                    index + 1,
+
+                  title:
+                    service.name,
+
+                  price:
+                    formatMoney(
+                      service.price
+                    )
+                })
+              )
+          : [
+              {
+                number: 1,
+                title:
+                  "بدون خدمات إضافية",
+                price:
+                  "0 ريال"
+              }
+            ];
+
+      return {
+        location,
+        people,
+        nights,
+        services
+      };
+    }
+
+    function calculateInvoiceHeight(
+      data
+    ) {
+      const tempCanvas =
+        document.createElement(
+          "canvas"
+        );
+
+      const context =
+        tempCanvas.getContext(
+          "2d"
+        );
+
+      context.font =
+        "24px Tahoma, Arial";
+
+      const prepared =
+        prepareInvoiceLists(
+          data
+        );
+
+      const noteLines =
+        splitInvoiceText(
+          context,
+          data.customer.notes,
+          950
+        ).length;
+
+      let nightLines = 0;
+
+      prepared.nights.forEach(
+        night => {
+          nightLines +=
+            splitInvoiceText(
+              context,
+              night.title,
+              690
+            ).length;
+        }
+      );
+
+      let serviceLines = 0;
+
+      prepared.services.forEach(
+        service => {
+          serviceLines +=
+            splitInvoiceText(
+              context,
+              service.title,
+              690
+            ).length;
+        }
+      );
+
+      return Math.max(
+        1950,
+        1650 +
+          data.booking
+            .nights.length *
+            80 +
+          nightLines * 28 +
+          data.booking
+            .services.length *
+            80 +
+          serviceLines * 28 +
+          noteLines * 42
+      );
+    }
+
+    function drawInvoiceSectionTitle(
+      context,
+      title,
+      x,
+      y,
+      width
+    ) {
+      invoiceRoundedRect(
+        context,
+        x,
+        y,
+        width,
+        70,
+        18,
+        "#eef1f5"
+      );
+
+      context.fillStyle =
+        "#c89b3c";
+
+      context.fillRect(
+        x + width - 14,
+        y + 17,
+        6,
+        36
+      );
+
+      context.textAlign =
+        "right";
+
+      context.fillStyle =
+        "#15283c";
+
+      context.font =
+        "bold 29px Tahoma, Arial";
+
+      context.fillText(
+        title,
+        x + width - 32,
+        y + 46
+      );
+    }
+
+    function drawInvoiceDetailRow(
+      context,
+      label,
+      value,
+      x,
+      y,
+      width
+    ) {
+      context.font =
+        "bold 23px Tahoma, Arial";
+
+      const lines =
+        splitInvoiceText(
+          context,
+          value,
+          width - 340
+        );
+
+      const rowHeight =
+        Math.max(
+          66,
+          lines.length * 35 +
+            28
+        );
+
+      context.textAlign =
+        "right";
+
+      context.fillStyle =
+        "#7a8491";
+
+      context.font =
+        "22px Tahoma, Arial";
+
+      context.fillText(
+        label,
+        x + width - 28,
+        y + 40
+      );
+
+      drawInvoiceLines(
+        context,
+        lines,
+        x + 28,
+        y + 40,
+        35,
+        {
+          align: "left",
+          color: "#172231",
+          font:
+            "bold 23px Tahoma, Arial"
+        }
+      );
+
+      context.strokeStyle =
+        "#e8ebef";
+
+      context.lineWidth =
+        1;
+
+      context.beginPath();
+
+      context.moveTo(
+        x + 24,
+        y + rowHeight
+      );
+
+      context.lineTo(
+        x + width - 24,
+        y + rowHeight
+      );
+
+      context.stroke();
+
+      return (
+        y +
+        rowHeight
+      );
+    }
+
+    function drawInvoiceListItem(
+      context,
+      item,
+      x,
+      y,
+      width
+    ) {
+      context.font =
+        "23px Tahoma, Arial";
+
+      const lines =
+        splitInvoiceText(
+          context,
+          item.title,
+          width - 315
+        );
+
+      const height =
+        Math.max(
+          76,
+          lines.length * 35 +
+            32
+        );
+
+      invoiceRoundedRect(
+        context,
+        x,
+        y,
+        width,
+        height,
+        16,
+        "#f8f9fb",
+        "#e1e5ea"
+      );
+
+      invoiceRoundedRect(
+        context,
+        x + width - 70,
+        y + 17,
+        42,
+        42,
+        12,
+        "#15283c"
+      );
+
+      context.textAlign =
+        "center";
+
+      context.fillStyle =
+        "#ffffff";
+
+      context.font =
+        "bold 20px Tahoma, Arial";
+
+      context.fillText(
+        String(
+          item.number
+        ),
+        x + width - 49,
+        y + 45
+      );
+
+      drawInvoiceLines(
+        context,
+        lines,
+        x + width - 92,
+        y + 44,
+        35,
+        {
+          align: "right",
+          color: "#172231",
+          font:
+            "23px Tahoma, Arial"
+        }
+      );
+
+      context.textAlign =
+        "left";
+
+      context.fillStyle =
+        "#9a7024";
+
+      context.font =
+        "bold 22px Tahoma, Arial";
+
+      context.fillText(
+        item.price,
+        x + 28,
+        y + 46
+      );
+
+      return (
+        y +
+        height +
+        14
+      );
+    }
+
+    async function createInvoiceImage(
+      data
+    ) {
+      if (
+        document.fonts &&
+        document.fonts.ready
+      ) {
+        try {
+          await document
+            .fonts.ready;
+        } catch {
+          // متابعة دون إيقاف الطلب
+        }
+      }
+
+      const canvas =
+        document.createElement(
+          "canvas"
+        );
+
+      canvas.width =
+        1200;
+
+      canvas.height =
+        calculateInvoiceHeight(
+          data
+        );
+
+      const context =
+        canvas.getContext(
+          "2d"
+        );
+
+      const prepared =
+        prepareInvoiceLists(
+          data
+        );
+
+      const navy =
+        "#15283c";
+
+      const navyDark =
+        "#0c1825";
+
+      const gold =
+        "#c89b3c";
+
+      const paleGold =
+        "#fff8e9";
+
+      const page =
+        "#edf0f4";
+
+      const white =
+        "#ffffff";
+
+      context.fillStyle =
+        page;
+
+      context.fillRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
+
+      const cardX =
+        48;
+
+      const cardWidth =
+        1104;
+
+      const innerX =
+        cardX + 34;
+
+      const innerWidth =
+        cardWidth - 68;
+
+      let y = 40;
+
+      invoiceRoundedRect(
+        context,
+        cardX,
+        y,
+        cardWidth,
+        215,
+        30,
+        navyDark
+      );
+
+      context.fillStyle =
+        gold;
+
+      context.fillRect(
+        cardX,
+        y,
+        14,
+        215
+      );
+
+      context.textAlign =
+        "right";
+
+      context.fillStyle =
+        white;
+
+      context.font =
+        "bold 46px Tahoma, Arial";
+
+      context.fillText(
+        "تفاصيل طلب الحجز",
+        cardX +
+          cardWidth -
+          48,
+        y + 72
+      );
+
+      context.fillStyle =
+        "#b8c3cf";
+
+      context.font =
+        "24px Tahoma, Arial";
+
+      context.fillText(
+        "مستند ملخص الحجز",
+        cardX +
+          cardWidth -
+          48,
+        y + 118
+      );
+
+      invoiceRoundedRect(
+        context,
+        cardX + 48,
+        y + 58,
+        330,
+        100,
+        20,
+        "#223b54",
+        "#38516a"
+      );
+
+      context.textAlign =
+        "left";
+
+      context.fillStyle =
+        "#aebbc7";
+
+      context.font =
+        "20px Tahoma, Arial";
+
+      context.fillText(
+        "رقم الحجز",
+        cardX + 75,
+        y + 96
+      );
+
+      context.fillStyle =
+        white;
+
+      context.font =
+        "bold 27px Tahoma, Arial";
+
+      context.fillText(
+        data.bookingNumber,
+        cardX + 75,
+        y + 137
+      );
+
+      y += 245;
+
+      invoiceRoundedRect(
+        context,
+        cardX,
+        y,
+        cardWidth,
+        82,
+        20,
+        paleGold,
+        "#ead8ab"
+      );
+
+      context.textAlign =
+        "right";
+
+      context.fillStyle =
+        "#725018";
+
+      context.font =
+        "bold 25px Tahoma, Arial";
+
+      context.fillText(
+        `المبلغ الإجمالي: ${formatMoney(
+          data.amounts.total
+        )}`,
+        cardX +
+          cardWidth -
+          32,
+        y + 52
+      );
+
+      context.textAlign =
+        "left";
+
+      context.fillStyle =
+        "#8a682c";
+
+      context.font =
+        "21px Tahoma, Arial";
+
+      context.fillText(
+        "يشمل الإقامة والخدمات والتأمين",
+        cardX + 32,
+        y + 52
+      );
+
+      y += 112;
+
+      drawInvoiceSectionTitle(
+        context,
+        "بيانات العميل والحجز",
+        cardX,
+        y,
+        cardWidth
+      );
+
+      y += 86;
+
+      const detailsStart =
+        y;
+
       const details = [
-        ["الاسم", data.customer.fullName],
-        ["رقم الجوال", data.customer.phone],
-        ["الموقع", location],
-        ["نوع الحجز", data.customer.bookingType],
-        ["عدد الأشخاص", people],
+        [
+          "الاسم الكامل",
+          data.customer
+            .fullName
+        ],
+        [
+          "رقم الجوال",
+          data.customer.phone
+        ],
+        [
+          "المدينة والحي",
+          prepared.location
+        ],
+        [
+          "نوع الحجز",
+          data.customer
+            .bookingType
+        ],
+        [
+          "عدد الأشخاص",
+          prepared.people
+        ],
         [
           "موعد الدخول",
           `${formatDate(
-            data.booking.checkInDate
-          )} — ${data.booking.checkInTime}`
+            data.booking
+              .checkInDate
+          )} — ${data.booking
+            .checkInTime}`
         ],
         [
           "موعد الخروج",
           `${formatDate(
-            data.booking.checkOutDate
-          )} — ${data.booking.checkOutTime}`
+            data.booking
+              .checkOutDate
+          )} — ${data.booking
+            .checkOutTime}`
+        ],
+        [
+          "مدة الحجز",
+          data.booking
+            .nightsCount === 1
+            ? "ليلة واحدة"
+            : `${data.booking
+                .nightsCount} ليالٍ`
         ]
       ];
 
+      let detailsY =
+        y + 20;
+
+      details.forEach(
+        item => {
+          detailsY =
+            drawInvoiceDetailRow(
+              context,
+              item[0],
+              item[1],
+              innerX,
+              detailsY,
+              innerWidth
+            );
+        }
+      );
+
       const detailsHeight =
-        90 + details.length * 58;
+        detailsY -
+        detailsStart +
+        18;
 
-      roundRect(
+      context.save();
+
+      context
+        .globalCompositeOperation =
+        "destination-over";
+
+      invoiceRoundedRect(
         context,
-        55,
-        y,
-        1090,
+        cardX,
+        detailsStart,
+        cardWidth,
         detailsHeight,
-        25,
-        "#ffffff"
+        24,
+        white,
+        "#e2e5e9"
       );
 
-      roundRect(
+      context.restore();
+
+      y =
+        detailsStart +
+        detailsHeight +
+        34;
+
+      drawInvoiceSectionTitle(
         context,
-        55,
+        "تفاصيل الليالي",
+        cardX,
         y,
-        1090,
-        72,
-        25,
-        "#eaf5f1"
+        cardWidth
       );
 
-      context.fillStyle = "#165342";
-      context.font =
-        "bold 30px Tahoma, Arial";
-      context.textAlign = "right";
+      y += 88;
 
-      context.fillText(
-        "بيانات الحجز",
-        1070,
-        y + 47
+      prepared.nights.forEach(
+        night => {
+          y =
+            drawInvoiceListItem(
+              context,
+              night,
+              innerX,
+              y,
+              innerWidth
+            );
+        }
       );
 
-      let rowY = y + 120;
+      y += 20;
 
-      for (const [label, value] of details) {
-        context.fillStyle = "#7a8580";
-        context.font =
-          "25px Tahoma, Arial";
-        context.textAlign = "right";
+      drawInvoiceSectionTitle(
+        context,
+        "الخدمات الإضافية",
+        cardX,
+        y,
+        cardWidth
+      );
 
-        context.fillText(
-          label,
-          1070,
-          rowY
-        );
+      y += 88;
 
-        context.fillStyle = "#1d2824";
-        context.font =
-          "bold 25px Tahoma, Arial";
-        context.textAlign = "left";
+      prepared.services.forEach(
+        service => {
+          y =
+            drawInvoiceListItem(
+              context,
+              service,
+              innerX,
+              y,
+              innerWidth
+            );
+        }
+      );
 
-        context.fillText(
-          String(value),
-          130,
-          rowY
-        );
+      y += 20;
 
-        context.strokeStyle = "#e2e8e5";
-        context.beginPath();
-        context.moveTo(
-          115,
-          rowY + 18
-        );
-        context.lineTo(
-          1085,
-          rowY + 18
-        );
-        context.stroke();
+      drawInvoiceSectionTitle(
+        context,
+        "الملاحظات والطلبات الخاصة",
+        cardX,
+        y,
+        cardWidth
+      );
 
-        rowY += 58;
-      }
-
-      y += detailsHeight + 30;
-
-      const serviceLines =
-        data.booking.services.length
-          ? data.booking.services.map(
-              service =>
-                `${service.name} — ${formatMoney(
-                  service.price
-                )}`
-            )
-          : ["بدون خدمات إضافية"];
-
-      const nightLines =
-        data.booking.nights.length
-          ? data.booking.nights.map(
-              night =>
-                `${formatDate(
-                  night.date
-                )} — ${night.type} — ${formatMoney(
-                  night.price
-                )}`
-            )
-          : ["لا توجد تفاصيل ليالٍ"];
+      y += 88;
 
       context.font =
-        "25px Tahoma, Arial";
+        "24px Tahoma, Arial";
 
       const noteLines =
-        wrapCanvasText(
+        splitInvoiceText(
           context,
           data.customer.notes ||
-          "لا توجد",
-          900
+            "لا توجد ملاحظات",
+          innerWidth - 70
         );
 
-      const detailsTwoHeight =
-        110 +
-        nightLines.length * 44 +
-        serviceLines.length * 48 +
-        noteLines.length * 40 +
-        150;
+      const notesHeight =
+        Math.max(
+          110,
+          noteLines.length *
+            41 +
+            54
+        );
 
-      roundRect(
+      invoiceRoundedRect(
         context,
-        55,
+        cardX,
         y,
-        1090,
-        detailsTwoHeight,
-        25,
-        "#ffffff"
+        cardWidth,
+        notesHeight,
+        22,
+        white,
+        "#e2e5e9"
       );
 
-      roundRect(
+      drawInvoiceLines(
         context,
-        55,
-        y,
-        1090,
-        72,
-        25,
-        "#eaf5f1"
+        noteLines,
+        cardX +
+          cardWidth -
+          36,
+        y + 50,
+        41,
+        {
+          align: "right",
+          color: "#172231",
+          font:
+            "24px Tahoma, Arial"
+        }
       );
 
-      context.textAlign = "right";
-      context.fillStyle = "#165342";
-      context.font =
-        "bold 30px Tahoma, Arial";
+      y +=
+        notesHeight +
+        40;
 
-      context.fillText(
-        "تفاصيل الليالي والخدمات",
-        1070,
-        y + 47
-      );
-
-      let contentY = y + 115;
-
-      context.fillStyle = "#165342";
-      context.font =
-        "bold 27px Tahoma, Arial";
-
-      context.fillText(
-        "تفاصيل الليالي",
-        1070,
-        contentY
-      );
-
-      contentY += 45;
-
-      context.fillStyle = "#1d2824";
-      context.font =
-        "24px Tahoma, Arial";
-
-      for (const line of nightLines) {
-        context.fillText(
-          line,
-          1040,
-          contentY
-        );
-
-        contentY += 44;
-      }
-
-      contentY += 20;
-
-      context.fillStyle = "#165342";
-      context.font =
-        "bold 27px Tahoma, Arial";
-
-      context.fillText(
-        "الخدمات الإضافية",
-        1070,
-        contentY
-      );
-
-      contentY += 45;
-
-      context.fillStyle = "#1d2824";
-      context.font =
-        "24px Tahoma, Arial";
-
-      for (const line of serviceLines) {
-        context.fillText(
-          line,
-          1040,
-          contentY
-        );
-
-        contentY += 48;
-      }
-
-      contentY += 20;
-
-      context.fillStyle = "#165342";
-      context.font =
-        "bold 27px Tahoma, Arial";
-
-      context.fillText(
-        "الملاحظات",
-        1070,
-        contentY
-      );
-
-      contentY += 45;
-
-      context.fillStyle = "#1d2824";
-      context.font =
-        "24px Tahoma, Arial";
-
-      for (const line of noteLines) {
-        context.fillText(
-          line,
-          1040,
-          contentY
-        );
-
-        contentY += 40;
-      }
-
-      y += detailsTwoHeight + 30;
-
-      roundRect(
+      invoiceRoundedRect(
         context,
-        55,
+        cardX,
         y,
-        1090,
-        345,
-        27,
-        "#1f705a"
+        cardWidth,
+        355,
+        28,
+        navy
       );
 
-      const amountRows = [
+      context.fillStyle =
+        gold;
+
+      context.fillRect(
+        cardX,
+        y,
+        14,
+        355
+      );
+
+      const totals = [
         [
           "قيمة الإقامة",
-          formatMoney(data.amounts.stay)
+          formatMoney(
+            data.amounts.stay
+          )
         ],
         [
           "الخدمات الإضافية",
-          formatMoney(data.amounts.services)
+          formatMoney(
+            data.amounts.services
+          )
         ],
         [
           "التأمين المسترد",
-          formatMoney(data.amounts.insurance)
+          formatMoney(
+            data.amounts.insurance
+          )
         ]
       ];
 
-      let amountY = y + 68;
+      let totalY =
+        y + 68;
 
-      context.fillStyle = "#ffffff";
-      context.font =
-        "bold 28px Tahoma, Arial";
+      totals.forEach(
+        total => {
+          context.textAlign =
+            "right";
 
-      for (
-        const [label, value]
-        of amountRows
-      ) {
-        context.textAlign = "right";
-        context.fillText(
-          label,
-          1070,
-          amountY
-        );
+          context.fillStyle =
+            "#c7d0d9";
 
-        context.textAlign = "left";
-        context.fillText(
-          value,
-          130,
-          amountY
-        );
+          context.font =
+            "24px Tahoma, Arial";
 
-        amountY += 62;
-      }
+          context.fillText(
+            total[0],
+            cardX +
+              cardWidth -
+              45,
+            totalY
+          );
+
+          context.textAlign =
+            "left";
+
+          context.fillStyle =
+            white;
+
+          context.font =
+            "bold 25px Tahoma, Arial";
+
+          context.fillText(
+            total[1],
+            cardX + 45,
+            totalY
+          );
+
+          totalY += 64;
+        }
+      );
 
       context.strokeStyle =
-        "rgba(255,255,255,0.25)";
+        "#405266";
+
+      context.lineWidth =
+        2;
 
       context.beginPath();
+
       context.moveTo(
-        115,
-        amountY - 18
+        cardX + 42,
+        totalY - 25
       );
+
       context.lineTo(
-        1085,
-        amountY - 18
+        cardX +
+          cardWidth -
+          42,
+        totalY - 25
       );
+
       context.stroke();
 
-      context.font =
-        "bold 41px Tahoma, Arial";
+      context.textAlign =
+        "right";
 
-      context.textAlign = "right";
+      context.fillStyle =
+        white;
+
+      context.font =
+        "bold 36px Tahoma, Arial";
+
       context.fillText(
         "المبلغ الكامل",
-        1070,
-        amountY + 48
+        cardX +
+          cardWidth -
+          45,
+        totalY + 42
       );
 
-      context.textAlign = "left";
+      context.textAlign =
+        "left";
+
+      context.fillStyle =
+        gold;
+
+      context.font =
+        "bold 42px Tahoma, Arial";
+
       context.fillText(
         formatMoney(
           data.amounts.total
         ),
-        130,
-        amountY + 48
+        cardX + 45,
+        totalY + 44
       );
 
+      y += 400;
+
+      context.textAlign =
+        "center";
+
+      context.fillStyle =
+        "#78838f";
+
+      context.font =
+        "19px Tahoma, Arial";
+
+      context.fillText(
+        `رقم الحجز: ${data.bookingNumber}`,
+        canvas.width / 2,
+        y
+      );
+
+      const finalHeight =
+        Math.min(
+          canvas.height,
+          y + 60
+        );
+
+      if (
+        finalHeight <
+        canvas.height
+      ) {
+        const outputCanvas =
+          document.createElement(
+            "canvas"
+          );
+
+        outputCanvas.width =
+          canvas.width;
+
+        outputCanvas.height =
+          finalHeight;
+
+        outputCanvas
+          .getContext("2d")
+          .drawImage(
+            canvas,
+            0,
+            0
+          );
+
+        return outputCanvas
+          .toDataURL(
+            "image/jpeg",
+            0.94
+          );
+      }
+
       return canvas.toDataURL(
-        "image/png",
-        0.92
+        "image/jpeg",
+        0.94
       );
     }
 
@@ -3031,10 +4474,11 @@
                 "application/json"
             },
 
-            body: JSON.stringify({
-              ...bookingData,
-              invoiceImage
-            })
+            body:
+              JSON.stringify({
+                ...bookingData,
+                invoiceImage
+              })
           },
           30000
         );
@@ -3042,28 +4486,31 @@
       const result =
         await response.json();
 
-      if (!response.ok || !result.ok) {
+      if (
+        !response.ok ||
+        !result.ok
+      ) {
         throw new Error(
           result.message ||
-          result.error ||
-          "تعذر إنشاء الحجز."
+          "تعذر تجهيز طلب الحجز."
         );
       }
 
       currentBookingNumber =
         result.bookingNumber;
 
-      bookingCreated = true;
+      bookingCreated =
+        true;
 
       return result;
     }
 
     async function continueToPayment() {
-      if (bookingRequestRunning) {
+      if (
+        bookingRequestRunning
+      ) {
         return;
       }
-
-      bookingRequestRunning = true;
 
       hideNotice();
 
@@ -3078,25 +4525,29 @@
         );
 
       if (
-        STORE_CONFIG.insurance.visible &&
+        STORE_CONFIG
+          .insurance.visible &&
         !insuranceAgreement.checked
       ) {
-        insuranceBox.classList.add(
-          "error"
-        );
+        insuranceBox
+          .classList
+          .add("error");
 
-        insuranceBox.scrollIntoView({
-          behavior: "smooth",
-          block: "center"
-        });
+        insuranceBox
+          .scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+          });
 
-        bookingRequestRunning = false;
         return;
       }
 
-      insuranceBox.classList.remove(
-        "error"
-      );
+      insuranceBox
+        .classList
+        .remove("error");
+
+      bookingRequestRunning =
+        true;
 
       const button =
         document.getElementById(
@@ -3122,17 +4573,18 @@
       } catch (error) {
         showNotice(
           error.message ||
-          "تعذر إنشاء الحجز."
+          "تعذر تجهيز طلب الحجز."
         );
       } finally {
+        bookingRequestRunning =
+          false;
+
         button.classList.remove(
           "loading-button"
         );
 
         button.textContent =
           oldText;
-
-        bookingRequestRunning = false;
       }
     }
 
@@ -3141,12 +4593,14 @@
         .querySelectorAll(
           ".payment-item"
         )
-        .forEach(item => {
-          item.classList.remove(
-            "error",
-            "selected"
-          );
-        });
+        .forEach(
+          item => {
+            item.classList.remove(
+              "error",
+              "selected"
+            );
+          }
+        );
 
       const selected =
         document.querySelector(
@@ -3155,8 +4609,12 @@
 
       if (selected) {
         selected
-          .closest(".payment-item")
-          .classList.add("selected");
+          .closest(
+            ".payment-item"
+          )
+          .classList.add(
+            "selected"
+          );
       }
     }
 
@@ -3165,12 +4623,18 @@
         .querySelectorAll(
           ".payment-item:not(.hidden)"
         )
-        .forEach(item => {
-          item.classList.add("error");
-        });
+        .forEach(
+          item => {
+            item.classList.add(
+              "error"
+            );
+          }
+        );
 
       document
-        .querySelector(".payment-list")
+        .querySelector(
+          ".payment-list"
+        )
         .scrollIntoView({
           behavior: "smooth",
           block: "center"
@@ -3178,11 +4642,11 @@
     }
 
     async function openSelectedPayment() {
-      if (paymentRequestRunning) {
+      if (
+        paymentRequestRunning
+      ) {
         return;
       }
-
-      paymentRequestRunning = true;
 
       hideNotice();
 
@@ -3193,11 +4657,13 @@
 
       if (!selected) {
         showPaymentError();
-        paymentRequestRunning = false;
         return;
       }
 
       clearPaymentError();
+
+      paymentRequestRunning =
+        true;
 
       const button =
         document.getElementById(
@@ -3219,30 +4685,36 @@
           await createBooking();
         }
 
-        if (selected.value === "card") {
+        const calculation =
+          currentCalculation ||
+          calculateBooking();
+
+        if (
+          selected.value ===
+          "card"
+        ) {
           const response =
             await fetchWithTimeout(
               "/api/payment/card",
               {
-                method: "POST",
+                method:
+                  "POST",
 
                 headers: {
                   "Content-Type":
                     "application/json"
                 },
 
-                body: JSON.stringify({
-                  bookingNumber:
-                    currentBookingNumber,
+                body:
+                  JSON.stringify({
+                    bookingNumber:
+                      currentBookingNumber,
 
-                  amount:
-                    Number(
-                      (
-                        currentCalculation ||
-                        calculateBooking()
-                      ).total
-                    )
-                })
+                    amount:
+                      Number(
+                        calculation.total
+                      )
+                  })
               },
               20000
             );
@@ -3256,8 +4728,18 @@
           ) {
             throw new Error(
               result.message ||
-              result.error ||
-              "تعذر تجهيز الدفع."
+              "تعذر تجهيز عملية الدفع."
+            );
+          }
+
+          if (
+            !result.paymentUrl ||
+            !/^https:\/\//i.test(
+              result.paymentUrl
+            )
+          ) {
+            throw new Error(
+              "الدفع بالبطاقة غير متاح حاليًا."
             );
           }
 
@@ -3267,17 +4749,26 @@
           return;
         }
 
-        if (selected.value === "bank") {
+        if (
+          selected.value ===
+          "bank"
+        ) {
           const bank =
-            STORE_CONFIG.payment.bank;
+            STORE_CONFIG
+              .payment.bank;
 
-          const calculation =
-            currentCalculation ||
-            calculateBooking();
+          if (
+            !bank.whatsappNumber
+          ) {
+            throw new Error(
+              "التحويل البنكي غير متاح حاليًا."
+            );
+          }
 
           const message =
             String(
-              bank.whatsappMessage || ""
+              bank.whatsappMessage ||
+              ""
             )
               .replace(
                 "{booking_number}",
@@ -3287,12 +4778,6 @@
                 "{amount}",
                 calculation.total
               );
-
-          if (!bank.whatsappNumber) {
-            throw new Error(
-              "رقم التحويل البنكي غير متوفر حاليًا."
-            );
-          }
 
           window.location.href =
             `https://wa.me/` +
@@ -3307,28 +4792,58 @@
           "تعذر تجهيز عملية الدفع."
         );
       } finally {
+        paymentRequestRunning =
+          false;
+
         button.classList.remove(
           "loading-button"
         );
 
         button.textContent =
           oldText;
-
-        paymentRequestRunning = false;
       }
     }
 
     function escapeHtml(value) {
-      return String(value == null ? "" : value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
+      return String(
+        value == null
+          ? ""
+          : value
+      )
+        .replace(
+          /&/g,
+          "&amp;"
+        )
+        .replace(
+          /</g,
+          "&lt;"
+        )
+        .replace(
+          />/g,
+          "&gt;"
+        );
     }
 
     function escapeAttribute(value) {
-      return escapeHtml(value)
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+      return escapeHtml(
+        value
+      )
+        .replace(
+          /"/g,
+          "&quot;"
+        )
+        .replace(
+          /'/g,
+          "&#039;"
+        );
+    }
+
+    function markBookingChanged() {
+      bookingCreated =
+        false;
+
+      currentBookingNumber =
+        "";
     }
 
     function bindPageEvents() {
@@ -3337,7 +4852,9 @@
         () => {
           clearFieldErrors();
 
-          if (checkInDate.value) {
+          if (
+            checkInDate.value
+          ) {
             const nextDay =
               getDateObject(
                 checkInDate.value
@@ -3368,11 +4885,12 @@
                 checkInDate.value
               )
             ) {
-              checkOutDate.value = "";
+              checkOutDate.value =
+                "";
             }
           }
 
-          bookingCreated = false;
+          markBookingChanged();
         }
       );
 
@@ -3380,7 +4898,7 @@
         "change",
         () => {
           clearFieldErrors();
-          bookingCreated = false;
+          markBookingChanged();
 
           if (
             checkInDate.value &&
@@ -3404,35 +4922,35 @@
         .querySelectorAll(
           'input[name="paymentMethod"]'
         )
-        .forEach(input => {
-          input.addEventListener(
-            "change",
-            clearPaymentError
-          );
-        });
-
-      document
-        .getElementById(
-          "insuranceAgreement"
-        )
-        .addEventListener(
-          "change",
-          () => {
-            if (
-              document.getElementById(
-                "insuranceAgreement"
-              ).checked
-            ) {
-              document
-                .getElementById(
-                  "insuranceBox"
-                )
-                .classList.remove(
-                  "error"
-                );
-            }
+        .forEach(
+          input => {
+            input.addEventListener(
+              "change",
+              clearPaymentError
+            );
           }
         );
+
+      document.getElementById(
+        "insuranceAgreement"
+      ).addEventListener(
+        "change",
+        () => {
+          if (
+            document
+              .getElementById(
+                "insuranceAgreement"
+              ).checked
+          ) {
+            document
+              .getElementById(
+                "insuranceBox"
+              )
+              .classList
+              .remove("error");
+          }
+        }
+      );
 
       [
         "fullName",
@@ -3444,30 +4962,32 @@
         "checkInTime",
         "checkOutTime",
         "notes"
-      ].forEach(id => {
-        document
-          .getElementById(id)
-          .addEventListener(
-            "input",
-            () => {
-              clearFieldErrors();
-              bookingCreated = false;
-            }
-          );
-      });
+      ].forEach(
+        id => {
+          document
+            .getElementById(id)
+            .addEventListener(
+              "input",
+              () => {
+                clearFieldErrors();
+                markBookingChanged();
+              }
+            );
+        }
+      );
 
       document
         .querySelectorAll(
           'input[name="bookingType"]'
         )
-        .forEach(input => {
-          input.addEventListener(
-            "change",
-            () => {
-              bookingCreated = false;
-            }
-          );
-        });
+        .forEach(
+          input => {
+            input.addEventListener(
+              "change",
+              markBookingChanged
+            );
+          }
+        );
     }
 
     async function startApplication() {
@@ -3478,7 +4998,8 @@
 
         document.getElementById(
           "pageLoader"
-        ).style.display = "none";
+        ).style.display =
+          "none";
       } catch (error) {
         const loader =
           document.getElementById(
@@ -3510,4 +5031,4 @@
   </script>
 
 </body>
-          </html>
+  </html>
