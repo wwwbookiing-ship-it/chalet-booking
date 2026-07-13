@@ -2,7 +2,16 @@
   "name": "chalet-booking",
   "main": "src/worker.js",
   "compatibility_date": "2026-07-13",
+
   "assets": {
     "directory": "./public"
-  }
+  },
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "قاعدة بيانات حجز الشاليهات",
+      "database_id": "7030910e-b201-4885-89a3-622057e8a21a"
+    }
+  ]
 }
