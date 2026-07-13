@@ -788,6 +788,35 @@
         font-size: 9px;
       }
     }
+
+    /* تحسينات iPhone */
+    input,
+    textarea,
+    button {
+      font-size: 16px;
+    }
+
+    input[type="date"],
+    input[type="time"] {
+      min-height: 53px;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    body {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .hero {
+      padding-top: calc(
+        38px + env(safe-area-inset-top)
+      );
+    }
+
+    .button {
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
   </style>
 </head>
 
@@ -2427,14 +2456,47 @@
       radius,
       fill
     ) {
+      const r = Math.min(
+        Number(radius) || 0,
+        width / 2,
+        height / 2
+      );
+
       context.beginPath();
-      context.roundRect(
+      context.moveTo(x + r, y);
+      context.lineTo(x + width - r, y);
+      context.quadraticCurveTo(
+        x + width,
+        y,
+        x + width,
+        y + r
+      );
+      context.lineTo(
+        x + width,
+        y + height - r
+      );
+      context.quadraticCurveTo(
+        x + width,
+        y + height,
+        x + width - r,
+        y + height
+      );
+      context.lineTo(x + r, y + height);
+      context.quadraticCurveTo(
+        x,
+        y + height,
+        x,
+        y + height - r
+      );
+      context.lineTo(x, y + r);
+      context.quadraticCurveTo(
         x,
         y,
-        width,
-        height,
-        radius
+        x + r,
+        y
       );
+      context.closePath();
+
       context.fillStyle = fill;
       context.fill();
     }
@@ -3077,7 +3139,15 @@
 
                 body: JSON.stringify({
                   bookingNumber:
-                    currentBookingNumber
+                    currentBookingNumber,
+
+                  amount:
+                    Number(
+                      (
+                        currentCalculation ||
+                        calculateBooking()
+                      ).total
+                    )
                 })
               }
             );
@@ -3152,16 +3222,16 @@
     }
 
     function escapeHtml(value) {
-      return String(value ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;");
+      return String(value == null ? "" : value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
     }
 
     function escapeAttribute(value) {
       return escapeHtml(value)
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
     }
 
     function bindPageEvents() {
