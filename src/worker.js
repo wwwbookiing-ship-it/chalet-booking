@@ -6,11 +6,63 @@ const JSON_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type"
 };
 
+const BUTTONS = {
+  MAIN: "القائمة الرئيسية",
+  SITE: "نصوص الموقع",
+  PRICES: "الأسعار",
+  SERVICES: "الخدمات",
+  PERIODS: "المواسم والمناسبات",
+  INSURANCE: "التأمين المسترد",
+  PAYMENT: "طرق الدفع",
+
+  BACK: "رجوع",
+  CANCEL: "إلغاء",
+
+  SITE_TOGGLE: "تشغيل أو إيقاف الموقع",
+  SITE_TITLE: "تعديل عنوان الموقع",
+  SITE_SUBTITLE: "تعديل وصف الموقع",
+  SITE_MAINTENANCE: "تعديل نص الصيانة",
+
+  WEEKDAY_PRICE: "سعر أيام الأسبوع",
+  THURSDAY_PRICE: "سعر الخميس",
+  FRIDAY_PRICE: "سعر الجمعة",
+
+  INSURANCE_TOGGLE: "إظهار أو إخفاء التأمين",
+  INSURANCE_AMOUNT: "تعديل مبلغ التأمين",
+  INSURANCE_TITLE: "تعديل عنوان التأمين",
+  INSURANCE_DESCRIPTION: "تعديل نص التأمين",
+
+  CARD_TOGGLE: "إظهار أو إخفاء البطاقة",
+  BANK_TOGGLE: "إظهار أو إخفاء التحويل",
+  CARD_URL: "رابط بوابة الدفع",
+  PAYMENT_BOT: "اسم بوت الدفع",
+  CARD_NAME: "اسم دفع البطاقة",
+  CARD_DESCRIPTION: "وصف دفع البطاقة",
+  BANK_NAME: "اسم التحويل البنكي",
+  BANK_DESCRIPTION: "وصف التحويل البنكي",
+  BANK_WHATSAPP: "رقم واتساب التحويل",
+  BANK_MESSAGE: "نص رسالة التحويل",
+
+  SERVICE_ADD: "إضافة خدمة",
+  SERVICE_LIST: "عرض الخدمات",
+  SERVICE_EDIT: "تعديل خدمة",
+  SERVICE_TOGGLE: "إظهار أو إخفاء خدمة",
+  SERVICE_DELETE: "حذف خدمة",
+
+  PERIOD_ADD_SEASON: "إضافة موسم",
+  PERIOD_ADD_OCCASION: "إضافة مناسبة",
+  PERIOD_LIST: "عرض الفترات",
+  PERIOD_TOGGLE: "إظهار أو إخفاء فترة",
+  PERIOD_DELETE: "حذف فترة"
+};
+
 const DEFAULT_SETTINGS = {
   site_enabled: "1",
   site_title: "طلب حجز",
+
   site_subtitle:
     "اختر موعد الحجز وعدد الأشخاص والخدمات المطلوبة، ثم راجع تفاصيل الطلب والمبلغ الكامل قبل اختيار طريقة الدفع.",
+
   maintenance_message:
     "الموقع تحت الصيانة حاليًا، يرجى المحاولة لاحقًا.",
 
@@ -29,20 +81,26 @@ const DEFAULT_SETTINGS = {
   insurance_visible: "1",
   insurance_amount: "400",
   insurance_title: "تفاصيل التأمين المسترد",
+
   insurance_description:
     "يتم تحصيل مبلغ التأمين للمحافظة على المكان ومحتوياته. يعاد المبلغ بعد انتهاء الحجز وفحص المكان والتأكد من عدم وجود تلفيات أو فقدان للممتلكات أو مخالفة لشروط الحجز.",
 
   card_visible: "1",
   card_name: "بطاقة ائتمان",
+
   card_description:
     "الدفع باستخدام بطاقة بنكية عبر بوابة دفع آمنة.",
+
   card_url: "",
 
   bank_visible: "1",
   bank_name: "تحويل بنكي",
+
   bank_description:
-    "تواصل مع الإدارة لاستلام الحساب البنكي المخصص للتحويل.",
+    "سيتم تحويلك إلى واتساب لإكمال عملية التحويل البنكي.",
+
   bank_whatsapp: "",
+
   bank_message:
     "السلام عليكم، أرغب بإكمال دفع الحجز رقم {booking_number}. المبلغ المطلوب {amount} ريال.",
 
@@ -50,15 +108,60 @@ const DEFAULT_SETTINGS = {
 };
 
 const DEFAULT_SERVICES = [
-  ["تدفئة المسبح", "تشغيل تدفئة المسبح خلال فترة الحجز.", 100, 1],
-  ["تجهيز مناسبة", "تجهيز أساسي للمناسبات والاحتفالات.", 250, 2],
-  ["تزيين بالبالونات", "تنسيق بالونات مناسب للاحتفال.", 150, 3],
-  ["تنسيق ورد", "تنسيق ورد للجلسة أو المناسبة.", 150, 4],
-  ["قهوة وضيافة", "قهوة عربية وشاي ومياه للضيوف.", 120, 5],
-  ["مستلزمات شواء", "فحم وأدوات وتجهيز منطقة الشواء.", 50, 6],
-  ["فطور صباحي", "تجهيز فطور خفيف حسب عدد الأشخاص.", 180, 7],
-  ["تسجيل دخول مبكر", "الدخول قبل الموعد الرسمي حسب التوفر.", 100, 8],
-  ["تسجيل خروج متأخر", "تمديد وقت الخروج حسب التوفر.", 100, 9]
+  [
+    "تدفئة المسبح",
+    "تشغيل تدفئة المسبح خلال فترة الحجز.",
+    100,
+    1
+  ],
+  [
+    "تجهيز مناسبة",
+    "تجهيز أساسي للمناسبات والاحتفالات.",
+    250,
+    2
+  ],
+  [
+    "تزيين بالبالونات",
+    "تنسيق بالونات مناسب للاحتفال.",
+    150,
+    3
+  ],
+  [
+    "تنسيق ورد",
+    "تنسيق ورد للجلسة أو المناسبة.",
+    150,
+    4
+  ],
+  [
+    "قهوة وضيافة",
+    "قهوة عربية وشاي ومياه للضيوف.",
+    120,
+    5
+  ],
+  [
+    "مستلزمات شواء",
+    "فحم وأدوات وتجهيز منطقة الشواء.",
+    50,
+    6
+  ],
+  [
+    "فطور صباحي",
+    "تجهيز فطور خفيف حسب عدد الأشخاص.",
+    180,
+    7
+  ],
+  [
+    "تسجيل دخول مبكر",
+    "الدخول قبل الموعد الرسمي حسب التوفر.",
+    100,
+    8
+  ],
+  [
+    "تسجيل خروج متأخر",
+    "تمديد وقت الخروج حسب التوفر.",
+    100,
+    9
+  ]
 ];
 
 export default {
@@ -97,28 +200,40 @@ export default {
         url.pathname === "/api/bookings" &&
         request.method === "POST"
       ) {
-        return receiveBookingInvoice(request, env);
+        return receiveBookingInvoice(
+          request,
+          env
+        );
       }
 
       if (
         url.pathname === "/api/payment/card" &&
         request.method === "POST"
       ) {
-        return prepareCardPayment(request, env);
+        return prepareCardPayment(
+          request,
+          env
+        );
       }
 
       if (
         url.pathname === "/telegram" &&
         request.method === "POST"
       ) {
-        return handleTelegramWebhook(request, env);
+        return handleTelegramWebhook(
+          request,
+          env
+        );
       }
 
       if (
         url.pathname === "/setup-webhook" &&
         request.method === "GET"
       ) {
-        return setupWebhook(env, url.origin);
+        return setupWebhook(
+          env,
+          url.origin
+        );
       }
 
       return env.ASSETS.fetch(request);
@@ -129,7 +244,9 @@ export default {
         {
           ok: false,
           error: "internal_error",
-          message: String(error?.message || error)
+          message: String(
+            error?.message || error
+          )
         },
         500
       );
@@ -138,7 +255,7 @@ export default {
 };
 
 /* =========================
-   قاعدة البيانات
+   إنشاء الجداول
 ========================= */
 
 async function ensureDatabase(env) {
@@ -147,7 +264,8 @@ async function ensureDatabase(env) {
       CREATE TABLE IF NOT EXISTS settings (
         key TEXT PRIMARY KEY,
         value TEXT NOT NULL,
-        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        updated_at TEXT NOT NULL
+          DEFAULT CURRENT_TIMESTAMP
       )
     `),
 
@@ -159,8 +277,10 @@ async function ensureDatabase(env) {
         price REAL NOT NULL DEFAULT 0,
         visible INTEGER NOT NULL DEFAULT 1,
         sort_order INTEGER NOT NULL DEFAULT 0,
-        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        created_at TEXT NOT NULL
+          DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT NOT NULL
+          DEFAULT CURRENT_TIMESTAMP
       )
     `),
 
@@ -173,7 +293,8 @@ async function ensureDatabase(env) {
         end_date TEXT NOT NULL,
         price REAL NOT NULL DEFAULT 0,
         visible INTEGER NOT NULL DEFAULT 1,
-        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        created_at TEXT NOT NULL
+          DEFAULT CURRENT_TIMESTAMP
       )
     `),
 
@@ -182,24 +303,45 @@ async function ensureDatabase(env) {
         chat_id TEXT PRIMARY KEY,
         state TEXT NOT NULL,
         payload TEXT NOT NULL DEFAULT '{}',
-        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        updated_at TEXT NOT NULL
+          DEFAULT CURRENT_TIMESTAMP
       )
     `)
   ]);
 
-  for (const [key, value] of Object.entries(DEFAULT_SETTINGS)) {
+  for (
+    const [key, value]
+    of Object.entries(DEFAULT_SETTINGS)
+  ) {
     await env.DB.prepare(`
-      INSERT OR IGNORE INTO settings (key, value)
+      INSERT OR IGNORE INTO settings (
+        key,
+        value
+      )
       VALUES (?, ?)
-    `).bind(key, value).run();
+    `).bind(
+      key,
+      value
+    ).run();
   }
 
-  const serviceCount = await env.DB.prepare(`
-    SELECT COUNT(*) AS count FROM services
-  `).first();
+  const serviceCount =
+    await env.DB.prepare(`
+      SELECT COUNT(*) AS count
+      FROM services
+    `).first();
 
-  if (Number(serviceCount?.count || 0) === 0) {
-    for (const service of DEFAULT_SERVICES) {
+  if (
+    Number(serviceCount?.count || 0) === 0
+  ) {
+    for (
+      const [
+        name,
+        description,
+        price,
+        sortOrder
+      ] of DEFAULT_SERVICES
+    ) {
       await env.DB.prepare(`
         INSERT INTO services (
           name,
@@ -209,26 +351,43 @@ async function ensureDatabase(env) {
           sort_order
         )
         VALUES (?, ?, ?, 1, ?)
-      `).bind(...service).run();
+      `).bind(
+        name,
+        description,
+        price,
+        sortOrder
+      ).run();
     }
   }
 }
 
 async function getSettings(env) {
-  const result = await env.DB.prepare(`
-    SELECT key, value FROM settings
-  `).all();
+  const result =
+    await env.DB.prepare(`
+      SELECT key, value
+      FROM settings
+    `).all();
 
   const settings = {};
 
-  for (const row of result.results || []) {
+  for (
+    const row
+    of result.results || []
+  ) {
     settings[row.key] = row.value;
   }
 
-  return settings;
+  return {
+    ...DEFAULT_SETTINGS,
+    ...settings
+  };
 }
 
-async function saveSetting(env, key, value) {
+async function saveSetting(
+  env,
+  key,
+  value
+) {
   await env.DB.prepare(`
     INSERT INTO settings (
       key,
@@ -236,57 +395,68 @@ async function saveSetting(env, key, value) {
       updated_at
     )
     VALUES (?, ?, CURRENT_TIMESTAMP)
+
     ON CONFLICT(key)
     DO UPDATE SET
       value = excluded.value,
       updated_at = CURRENT_TIMESTAMP
-  `).bind(key, String(value)).run();
+  `).bind(
+    key,
+    String(value)
+  ).run();
 }
 
 /* =========================
-   إعدادات الموقع
+   إعدادات الموقع العامة
 ========================= */
 
 async function getPublicConfig(env) {
-  const settings = await getSettings(env);
+  const settings =
+    await getSettings(env);
 
-  const servicesResult = await env.DB.prepare(`
-    SELECT
-      id,
-      name,
-      description,
-      price,
-      visible
-    FROM services
-    WHERE visible = 1
-    ORDER BY sort_order ASC, id ASC
-  `).all();
+  const servicesResult =
+    await env.DB.prepare(`
+      SELECT
+        id,
+        name,
+        description,
+        price,
+        visible
+      FROM services
+      WHERE visible = 1
+      ORDER BY sort_order ASC, id ASC
+    `).all();
 
-  const periodsResult = await env.DB.prepare(`
-    SELECT
-      id,
-      type,
-      name,
-      start_date,
-      end_date,
-      price,
-      visible
-    FROM periods
-    WHERE visible = 1
-    ORDER BY start_date ASC
-  `).all();
+  const periodsResult =
+    await env.DB.prepare(`
+      SELECT
+        id,
+        type,
+        name,
+        start_date,
+        end_date,
+        price,
+        visible
+      FROM periods
+      WHERE visible = 1
+      ORDER BY start_date ASC
+    `).all();
 
   const occasions = [];
   const seasons = [];
 
-  for (const row of periodsResult.results || []) {
+  for (
+    const row
+    of periodsResult.results || []
+  ) {
     const item = {
       id: Number(row.id),
       name: row.name,
       start: row.start_date,
       end: row.end_date,
       price: Number(row.price),
-      enabled: Number(row.visible) === 1
+      enabled:
+        Number(row.visible) === 1
     };
 
     if (row.type === "season") {
@@ -300,29 +470,61 @@ async function getPublicConfig(env) {
     ok: true,
 
     site: {
-      enabled: enabled(settings.site_enabled),
-      title: settings.site_title,
-      subtitle: settings.site_subtitle,
-      maintenanceMessage: settings.maintenance_message
+      enabled:
+        enabled(settings.site_enabled),
+
+      title:
+        settings.site_title,
+
+      subtitle:
+        settings.site_subtitle,
+
+      maintenanceMessage:
+        settings.maintenance_message
     },
 
     pricing: {
       weekdays: {
-        name: settings.weekday_name,
-        price: number(settings.weekday_price),
-        visible: enabled(settings.weekday_visible)
+        name:
+          settings.weekday_name,
+
+        price:
+          number(settings.weekday_price),
+
+        visible:
+          enabled(
+            settings.weekday_visible
+          )
       },
 
       thursday: {
-        name: settings.thursday_name,
-        price: number(settings.thursday_price),
-        visible: enabled(settings.thursday_visible)
+        name:
+          settings.thursday_name,
+
+        price:
+          number(
+            settings.thursday_price
+          ),
+
+        visible:
+          enabled(
+            settings.thursday_visible
+          )
       },
 
       friday: {
-        name: settings.friday_name,
-        price: number(settings.friday_price),
-        visible: enabled(settings.friday_visible)
+        name:
+          settings.friday_name,
+
+        price:
+          number(
+            settings.friday_price
+          ),
+
+        visible:
+          enabled(
+            settings.friday_visible
+          )
       },
 
       occasions: {
@@ -339,67 +541,117 @@ async function getPublicConfig(env) {
     },
 
     insurance: {
-      visible: enabled(settings.insurance_visible),
-      amount: number(settings.insurance_amount),
-      title: settings.insurance_title,
-      description: settings.insurance_description
+      visible:
+        enabled(
+          settings.insurance_visible
+        ),
+
+      amount:
+        number(
+          settings.insurance_amount
+        ),
+
+      title:
+        settings.insurance_title,
+
+      description:
+        settings.insurance_description
     },
 
-    services: (servicesResult.results || []).map(row => ({
-      id: Number(row.id),
-      name: row.name,
-      description: row.description,
-      price: Number(row.price),
-      visible: Number(row.visible) === 1
-    })),
+    services:
+      (servicesResult.results || [])
+        .map(row => ({
+          id: Number(row.id),
+          name: row.name,
+          description: row.description,
+          price: Number(row.price),
+          visible:
+            Number(row.visible) === 1
+        })),
 
     payment: {
       card: {
-        visible: enabled(settings.card_visible),
-        name: settings.card_name,
-        description: settings.card_description
+        visible:
+          enabled(
+            settings.card_visible
+          ),
+
+        name:
+          settings.card_name,
+
+        description:
+          settings.card_description
       },
 
       bank: {
-        visible: enabled(settings.bank_visible),
-        name: settings.bank_name,
-        description: settings.bank_description,
-        whatsappNumber: settings.bank_whatsapp,
-        whatsappMessage: settings.bank_message
+        visible:
+          enabled(
+            settings.bank_visible
+          ),
+
+        name:
+          settings.bank_name,
+
+        description:
+          settings.bank_description,
+
+        whatsappNumber:
+          settings.bank_whatsapp,
+
+        whatsappMessage:
+          settings.bank_message
       }
     }
   });
 }
 
 /* =========================
-   استقبال الفاتورة
+   استقبال فاتورة الحجز
 ========================= */
 
-async function receiveBookingInvoice(request, env) {
-  const body = await request.json();
+async function receiveBookingInvoice(
+  request,
+  env
+) {
+  const body =
+    await request.json();
 
-  if (!body?.customer || !body?.booking || !body?.amounts) {
+  if (
+    !body?.customer ||
+    !body?.booking ||
+    !body?.amounts
+  ) {
     return json(
       {
         ok: false,
-        error: "invalid_booking_data"
+        error:
+          "invalid_booking_data",
+        message:
+          "بيانات الحجز غير مكتملة."
       },
       400
     );
   }
 
   const bookingNumber =
-    clean(body.bookingNumber, 50) ||
+    clean(
+      body.bookingNumber,
+      50
+    ) ||
     `BK-${Date.now()}`;
 
-  const caption = buildInvoiceCaption({
-    ...body,
-    bookingNumber
-  });
+  const caption =
+    buildInvoiceCaption({
+      ...body,
+      bookingNumber
+    });
 
   if (
-    typeof body.invoiceImage === "string" &&
-    body.invoiceImage.startsWith("data:image/")
+    typeof body.invoiceImage ===
+      "string" &&
+    body.invoiceImage.startsWith(
+      "data:image/"
+    )
   ) {
     await sendInvoicePhoto(
       env,
@@ -408,11 +660,20 @@ async function receiveBookingInvoice(request, env) {
       caption
     );
   } else {
-    await telegram(env, "sendMessage", {
-      chat_id: env.ADMIN_CHAT_ID,
-      text: caption,
-      parse_mode: "HTML"
-    });
+    await telegram(
+      env,
+      "sendMessage",
+      {
+        chat_id:
+          env.ADMIN_CHAT_ID,
+
+        text:
+          caption,
+
+        parse_mode:
+          "HTML"
+      }
+    );
   }
 
   return json({
@@ -422,24 +683,39 @@ async function receiveBookingInvoice(request, env) {
 }
 
 function buildInvoiceCaption(data) {
-  const customer = data.customer || {};
-  const booking = data.booking || {};
-  const amounts = data.amounts || {};
+  const customer =
+    data.customer || {};
 
-  const services = Array.isArray(booking.services)
-    ? booking.services
-    : [];
+  const booking =
+    data.booking || {};
 
-  const servicesText = services.length
-    ? services.map(service => service.name).join("، ")
-    : "بدون خدمات إضافية";
+  const amounts =
+    data.amounts || {};
 
-  const location = customer.district
-    ? `${customer.city}، ${customer.district}`
-    : customer.city;
+  const services =
+    Array.isArray(
+      booking.services
+    )
+      ? booking.services
+      : [];
+
+  const servicesText =
+    services.length
+      ? services
+          .map(
+            service =>
+              service.name
+          )
+          .join("، ")
+      : "بدون خدمات إضافية";
+
+  const location =
+    customer.district
+      ? `${customer.city}، ${customer.district}`
+      : customer.city;
 
   return [
-    "🏡 <b>فاتورة طلب حجز جديدة</b>",
+    "🏡 <b>طلب حجز جديد</b>",
     "",
     `🔖 <b>رقم الحجز:</b> ${html(data.bookingNumber)}`,
     `👤 <b>الاسم:</b> ${html(customer.fullName)}`,
@@ -468,31 +744,50 @@ async function sendInvoicePhoto(
   dataUrl,
   caption
 ) {
-  const image = decodeDataUrl(dataUrl);
+  const image =
+    decodeDataUrl(dataUrl);
 
-  const form = new FormData();
+  const form =
+    new FormData();
 
-  form.append("chat_id", String(env.ADMIN_CHAT_ID));
-  form.append("caption", caption);
-  form.append("parse_mode", "HTML");
+  form.append(
+    "chat_id",
+    String(env.ADMIN_CHAT_ID)
+  );
+
+  form.append(
+    "caption",
+    caption
+  );
+
+  form.append(
+    "parse_mode",
+    "HTML"
+  );
 
   form.append(
     "photo",
-    new Blob([image.bytes], {
-      type: image.mimeType
-    }),
+    new Blob(
+      [image.bytes],
+      {
+        type:
+          image.mimeType
+      }
+    ),
     `invoice-${bookingNumber}.png`
   );
 
-  const response = await fetch(
-    `https://api.telegram.org/bot${env.ADMIN_BOT_TOKEN}/sendPhoto`,
-    {
-      method: "POST",
-      body: form
-    }
-  );
+  const response =
+    await fetch(
+      `https://api.telegram.org/bot${env.ADMIN_BOT_TOKEN}/sendPhoto`,
+      {
+        method: "POST",
+        body: form
+      }
+    );
 
-  const result = await response.json();
+  const result =
+    await response.json();
 
   if (!result.ok) {
     throw new Error(
@@ -503,19 +798,32 @@ async function sendInvoicePhoto(
 }
 
 function decodeDataUrl(dataUrl) {
-  const match = dataUrl.match(
-    /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/
-  );
+  const match =
+    dataUrl.match(
+      /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/
+    );
 
   if (!match) {
-    throw new Error("صيغة الصورة غير صحيحة");
+    throw new Error(
+      "صيغة الصورة غير صحيحة"
+    );
   }
 
-  const binary = atob(match[2]);
-  const bytes = new Uint8Array(binary.length);
+  const binary =
+    atob(match[2]);
 
-  for (let index = 0; index < binary.length; index++) {
-    bytes[index] = binary.charCodeAt(index);
+  const bytes =
+    new Uint8Array(
+      binary.length
+    );
+
+  for (
+    let index = 0;
+    index < binary.length;
+    index++
+  ) {
+    bytes[index] =
+      binary.charCodeAt(index);
   }
 
   return {
@@ -525,52 +833,49 @@ function decodeDataUrl(dataUrl) {
 }
 
 /* =========================
-   إرسال مبلغ الدفع
+   تجهيز دفع البطاقة
 ========================= */
 
-async function prepareCardPayment(request, env) {
-  let body;
-
-  try {
-    body = await request.json();
-  } catch {
-    return json(
-      {
-        ok: false,
-        error: "invalid_json",
-        message: "تعذر قراءة بيانات عملية الدفع."
-      },
-      400
-    );
-  }
+async function prepareCardPayment(
+  request,
+  env
+) {
+  const body =
+    await request.json();
 
   const bookingNumber =
-    clean(body?.bookingNumber, 60);
+    clean(
+      body.bookingNumber,
+      60
+    );
 
   const amount =
-    number(body?.amount ?? body?.total);
+    number(
+      body.amount ??
+      body.total
+    );
 
   if (!bookingNumber) {
     return json(
       {
         ok: false,
-        error: "missing_booking_number",
-        message: "رقم الحجز غير موجود."
+        error:
+          "missing_booking_number",
+        message:
+          "رقم الحجز غير موجود."
       },
       400
     );
   }
 
-  if (
-    !Number.isFinite(amount) ||
-    amount <= 0 ||
-    amount > 1000000
-  ) {
+  if (!(amount > 0)) {
     return json(
       {
         ok: false,
-        error: "invalid_payment_amount",
-        message: "مبلغ الدفع غير صحيح."
+        error:
+          "missing_payment_amount",
+        message:
+          "مبلغ الدفع غير موجود."
       },
       400
     );
@@ -579,48 +884,31 @@ async function prepareCardPayment(request, env) {
   const settings =
     await getSettings(env);
 
-  if (!enabled(settings.card_visible)) {
+  if (
+    !enabled(
+      settings.card_visible
+    )
+  ) {
     return json(
       {
         ok: false,
-        error: "card_payment_disabled",
-        message: "الدفع بالبطاقة غير متاح حاليًا."
+        error:
+          "card_payment_disabled",
+        message:
+          "الدفع بالبطاقة غير متاح حاليًا."
       },
       409
     );
   }
 
-  const paymentUrl =
-    clean(settings.card_url, 2000);
-
-  if (
-    !paymentUrl ||
-    !/^https:\/\//i.test(paymentUrl)
-  ) {
+  if (!settings.card_url) {
     return json(
       {
         ok: false,
-        error: "payment_url_missing",
+        error:
+          "payment_url_missing",
         message:
           "الدفع بالبطاقة غير متاح حاليًا، يرجى اختيار طريقة دفع أخرى."
-      },
-      409
-    );
-  }
-
-  const paymentBot =
-    clean(settings.payment_bot_username, 100);
-
-  if (
-    !paymentBot ||
-    !paymentBot.startsWith("@")
-  ) {
-    return json(
-      {
-        ok: false,
-        error: "payment_destination_missing",
-        message:
-          "تعذر تجهيز عملية الدفع حاليًا، يرجى المحاولة لاحقًا."
       },
       409
     );
@@ -629,77 +917,82 @@ async function prepareCardPayment(request, env) {
   const formattedAmount =
     `SAR ${amount.toFixed(2)}`;
 
-  try {
-    const telegramResult =
+  if (
+    settings.payment_bot_username
+  ) {
+    try {
       await telegram(
         env,
         "sendMessage",
         {
-          chat_id: paymentBot,
-          text: formattedAmount
+          chat_id:
+            settings
+              .payment_bot_username,
+
+          text:
+            formattedAmount
         }
       );
-
-    if (!telegramResult?.ok) {
-      throw new Error(
-        "payment_amount_delivery_failed"
+    } catch (error) {
+      console.error(
+        "Payment message error:",
+        error
       );
     }
-  } catch (error) {
-    console.error(
-      "Payment amount delivery failed:",
-      error
-    );
-
-    return json(
-      {
-        ok: false,
-        error: "payment_amount_delivery_failed",
-        message:
-          "تعذر تجهيز مبلغ الدفع حاليًا، يرجى المحاولة مرة أخرى."
-      },
-      502
-    );
   }
 
   return json({
     ok: true,
     bookingNumber,
-    amount: formattedAmount,
-    paymentUrl
+    amount:
+      formattedAmount,
+
+    paymentUrl:
+      settings.card_url
   });
 }
 
 /* =========================
-   Webhook بوت الإدارة
+   ربط Webhook
 ========================= */
 
-async function setupWebhook(env, origin) {
-  const secret = await webhookSecret(
-    env.ADMIN_BOT_TOKEN
-  );
+async function setupWebhook(
+  env,
+  origin
+) {
+  const secret =
+    await webhookSecret(
+      env.ADMIN_BOT_TOKEN
+    );
 
   const webhookUrl =
     `${origin}/telegram`;
 
-  const result = await telegram(
-    env,
-    "setWebhook",
-    {
-      url: webhookUrl,
-      secret_token: secret,
-      allowed_updates: [
-        "message",
-        "callback_query"
-      ],
-      drop_pending_updates: true
-    }
-  );
+  const result =
+    await telegram(
+      env,
+      "setWebhook",
+      {
+        url:
+          webhookUrl,
+
+        secret_token:
+          secret,
+
+        allowed_updates: [
+          "message"
+        ],
+
+        drop_pending_updates:
+          true
+      }
+    );
 
   return json({
     ok: true,
     webhookUrl,
-    telegram: result
+    telegram:
+      result
   });
 }
 
@@ -717,26 +1010,22 @@ async function handleTelegramWebhook(
       "X-Telegram-Bot-Api-Secret-Token"
     ) || "";
 
-  if (receivedSecret !== expectedSecret) {
+  if (
+    receivedSecret !==
+    expectedSecret
+  ) {
     return json(
       {
         ok: false,
-        error: "unauthorized"
+        error:
+          "unauthorized"
       },
       401
     );
   }
 
-  const update = await request.json();
-
-  if (update.callback_query) {
-    await handleCallback(
-      env,
-      update.callback_query
-    );
-
-    return json({ ok: true });
-  }
+  const update =
+    await request.json();
 
   if (update.message) {
     await handleMessage(
@@ -745,19 +1034,34 @@ async function handleTelegramWebhook(
     );
   }
 
-  return json({ ok: true });
+  return json({
+    ok: true
+  });
 }
 
-async function handleMessage(env, message) {
+/* =========================
+   معالجة رسائل الإدارة
+========================= */
+
+async function handleMessage(
+  env,
+  message
+) {
   const chatId =
-    String(message.chat?.id || "");
+    String(
+      message.chat?.id || ""
+    );
 
   const text =
-    clean(message.text, 6000);
+    clean(
+      message.text,
+      6000
+    );
 
   if (
     !chatId ||
-    chatId !== String(env.ADMIN_CHAT_ID)
+    chatId !==
+      String(env.ADMIN_CHAT_ID)
   ) {
     return;
   }
@@ -765,666 +1069,981 @@ async function handleMessage(env, message) {
   if (
     text === "/start" ||
     text === "/menu" ||
-    text === "القائمة"
+    text === BUTTONS.MAIN
   ) {
-    await clearState(env, chatId);
-    await sendMainMenu(env, chatId);
+    await clearState(
+      env,
+      chatId
+    );
+
+    await sendMainMenu(
+      env,
+      chatId
+    );
+
+    return;
+  }
+
+  if (
+    text === BUTTONS.CANCEL
+  ) {
+    const oldState =
+      await getState(
+        env,
+        chatId
+      );
+
+    await clearState(
+      env,
+      chatId
+    );
+
+    await returnToMenu(
+      env,
+      chatId,
+      oldState?.payload
+        ?.returnMenu
+    );
+
+    return;
+  }
+
+  if (
+    text === BUTTONS.BACK
+  ) {
+    const oldState =
+      await getState(
+        env,
+        chatId
+      );
+
+    await clearState(
+      env,
+      chatId
+    );
+
+    await returnToMenu(
+      env,
+      chatId,
+      oldState?.payload
+        ?.returnMenu
+    );
+
+    return;
+  }
+
+  if (
+    await handleMenuButton(
+      env,
+      chatId,
+      text
+    )
+  ) {
     return;
   }
 
   const state =
-    await getState(env, chatId);
+    await getState(
+      env,
+      chatId
+    );
 
-  if (!state) {
-    await sendMainMenu(env, chatId);
+  if (state) {
+    await processState(
+      env,
+      chatId,
+      text,
+      state
+    );
+
     return;
   }
 
-  await processState(
+  await sendMainMenu(
     env,
-    chatId,
-    text,
-    state
+    chatId
   );
 }
 
-async function handleCallback(env, query) {
-  const chatId =
-    String(query.message?.chat?.id || "");
+async function handleMenuButton(
+  env,
+  chatId,
+  text
+) {
+  switch (text) {
+    case BUTTONS.SITE:
+      await sendSiteMenu(
+        env,
+        chatId
+      );
+      return true;
 
-  if (
-    !chatId ||
-    chatId !== String(env.ADMIN_CHAT_ID)
-  ) {
-    return;
-  }
+    case BUTTONS.PRICES:
+      await sendPricesMenu(
+        env,
+        chatId
+      );
+      return true;
 
-  await telegram(
-    env,
-    "answerCallbackQuery",
-    {
-      callback_query_id: query.id
-    }
-  );
+    case BUTTONS.SERVICES:
+      await sendServicesMenu(
+        env,
+        chatId
+      );
+      return true;
 
-  const action =
-    String(query.data || "");
+    case BUTTONS.PERIODS:
+      await sendPeriodsMenu(
+        env,
+        chatId
+      );
+      return true;
 
-  if (action === "main") {
-    await sendMainMenu(env, chatId);
-    return;
-  }
+    case BUTTONS.INSURANCE:
+      await sendInsuranceMenu(
+        env,
+        chatId
+      );
+      return true;
 
-  if (action === "site_menu") {
-    await sendSiteMenu(env, chatId);
-    return;
-  }
+    case BUTTONS.PAYMENT:
+      await sendPaymentMenu(
+        env,
+        chatId
+      );
+      return true;
 
-  if (action === "prices_menu") {
-    await sendPricesMenu(env, chatId);
-    return;
-  }
+    case BUTTONS.SITE_TOGGLE:
+      await toggleSetting(
+        env,
+        "site_enabled"
+      );
 
-  if (action === "insurance_menu") {
-    await sendInsuranceMenu(env, chatId);
-    return;
-  }
+      await sendSiteMenu(
+        env,
+        chatId
+      );
+      return true;
 
-  if (action === "payment_menu") {
-    await sendPaymentMenu(env, chatId);
-    return;
-  }
+    case BUTTONS.SITE_TITLE:
+      await beginSettingEdit(
+        env,
+        chatId,
+        "site_title",
+        "أرسل عنوان الموقع الجديد:",
+        "site"
+      );
+      return true;
 
-  if (action === "services_menu") {
-    await sendServicesMenu(env, chatId);
-    return;
-  }
+    case BUTTONS.SITE_SUBTITLE:
+      await beginSettingEdit(
+        env,
+        chatId,
+        "site_subtitle",
+        "أرسل وصف الموقع الجديد:",
+        "site"
+      );
+      return true;
 
-  if (action === "periods_menu") {
-    await sendPeriodsMenu(env, chatId);
-    return;
-  }
+    case BUTTONS.SITE_MAINTENANCE:
+      await beginSettingEdit(
+        env,
+        chatId,
+        "maintenance_message",
+        "أرسل نص الصيانة الجديد:",
+        "site"
+      );
+      return true;
 
-  if (action === "toggle_site") {
-    await toggleSetting(
-      env,
-      "site_enabled"
-    );
+    case BUTTONS.WEEKDAY_PRICE:
+      await beginSettingEdit(
+        env,
+        chatId,
+        "weekday_price",
+        "أرسل سعر أيام الأسبوع:",
+        "prices"
+      );
+      return true;
 
-    await sendSiteMenu(env, chatId);
-    return;
-  }
+    case BUTTONS.THURSDAY_PRICE:
+      await beginSettingEdit(
+        env,
+        chatId,
+        "thursday_price",
+        "أرسل سعر يوم الخميس:",
+        "prices"
+      );
+      return true;
 
-  if (action === "toggle_insurance") {
-    await toggleSetting(
-      env,
-      "insurance_visible"
-    );
+    case BUTTONS.FRIDAY_PRICE:
+      await beginSettingEdit(
+        env,
+        chatId,
+        "friday_price",
+        "أرسل سعر يوم الجمعة:",
+        "prices"
+      );
+      return true;
 
-    await sendInsuranceMenu(env, chatId);
-    return;
-  }
+    case BUTTONS.INSURANCE_TOGGLE:
+      await toggleSetting(
+        env,
+        "insurance_visible"
+      );
 
-  if (action === "toggle_card") {
-    await toggleSetting(
-      env,
-      "card_visible"
-    );
+      await sendInsuranceMenu(
+        env,
+        chatId
+      );
+      return true;
 
-    await sendPaymentMenu(env, chatId);
-    return;
-  }
+    case BUTTONS.INSURANCE_AMOUNT:
+      await beginSettingEdit(
+        env,
+        chatId,
+        "insurance_amount",
+        "أرسل مبلغ التأمين الجديد:",
+        "insurance"
+      );
+      return true;
 
-  if (action === "toggle_bank") {
-    await toggleSetting(
-      env,
-      "bank_visible"
-    );
+    case BUTTONS.INSURANCE_TITLE:
+      await beginSettingEdit(
+        env,
+        chatId,
+        "insurance_title",
+        "أرسل عنوان التأمين الجديد:",
+        "insurance"
+      );
+      return true;
 
-    await sendPaymentMenu(env, chatId);
-    return;
-  }
+    case BUTTONS.INSURANCE_DESCRIPTION:
+      await beginSettingEdit(
+        env,
+        chatId,
+        "insurance_description",
+        "أرسل نص التأمين الجديد:",
+        "insurance"
+      );
+      return true;
 
-  if (action.startsWith("edit:")) {
-    const key =
-      action.slice(5);
+    case BUTTONS.CARD_TOGGLE:
+      await toggleSetting(
+        env,
+        "card_visible"
+      );
 
-    await setState(
-      env,
-      chatId,
-      "edit_setting",
-      { key }
-    );
+      await sendPaymentMenu(
+        env,
+        chatId
+      );
+      return true;
 
-    await telegram(
-      env,
-      "sendMessage",
-      {
-        chat_id: chatId,
-        text:
-          "أرسل القيمة الجديدة الآن.\n\n" +
-          "للإلغاء أرسل: /cancel"
-      }
-    );
+    case BUTTONS.BANK_TOGGLE:
+      await toggleSetting(
+        env,
+        "bank_visible"
+      );
 
-    return;
-  }
+      await sendPaymentMenu(
+        env,
+        chatId
+      );
+      return true;
 
-  if (action === "service_add") {
-    await setState(
-      env,
-      chatId,
-      "add_service",
-      {}
-    );
+    case BUTTONS.CARD_URL:
+      await beginSettingEdit(
+        env,
+        chatId,
+        "card_url",
+        "أرسل رابط بوابة الدفع كاملًا ويبدأ بـ https://",
+        "payment"
+      );
+      return true;
 
-    await telegram(
-      env,
-      "sendMessage",
-      {
-        chat_id: chatId,
-        text:
-          "أرسل بيانات الخدمة بهذا الترتيب:\n\n" +
-          "الاسم | الوصف | السعر\n\n" +
-          "مثال:\n" +
-          "تدفئة المسبح | تشغيل التدفئة طوال الحجز | 100"
-      }
-    );
+    case BUTTONS.PAYMENT_BOT:
+      await beginSettingEdit(
+        env,
+        chatId,
+        "payment_bot_username",
+        "أرسل اسم بوت الدفع ويبدأ بعلامة @",
+        "payment"
+      );
+      return true;
 
-    return;
-  }
+    case BUTTONS.CARD_NAME:
+      await beginSettingEdit(
+        env,
+        chatId,
+        "card_name",
+        "أرسل اسم طريقة دفع البطاقة:",
+        "payment"
+      );
+      return true;
 
-  if (action.startsWith("service_toggle:")) {
-    const id =
-      integer(action.split(":")[1]);
+    case BUTTONS.CARD_DESCRIPTION:
+      await beginSettingEdit(
+        env,
+        chatId,
+        "card_description",
+        "أرسل وصف دفع البطاقة:",
+        "payment"
+      );
+      return true;
 
-    await env.DB.prepare(`
-      UPDATE services
-      SET
-        visible = CASE
-          WHEN visible = 1 THEN 0
-          ELSE 1
-        END,
-        updated_at = CURRENT_TIMESTAMP
-      WHERE id = ?
-    `).bind(id).run();
+    case BUTTONS.BANK_NAME:
+      await beginSettingEdit(
+        env,
+        chatId,
+        "bank_name",
+        "أرسل اسم طريقة التحويل البنكي:",
+        "payment"
+      );
+      return true;
 
-    await sendServicesMenu(env, chatId);
-    return;
-  }
+    case BUTTONS.BANK_DESCRIPTION:
+      await beginSettingEdit(
+        env,
+        chatId,
+        "bank_description",
+        "أرسل وصف التحويل البنكي:",
+        "payment"
+      );
+      return true;
 
-  if (action.startsWith("service_delete:")) {
-    const id =
-      integer(action.split(":")[1]);
+    case BUTTONS.BANK_WHATSAPP:
+      await beginSettingEdit(
+        env,
+        chatId,
+        "bank_whatsapp",
+        "أرسل رقم واتساب مع رمز الدولة، بدون + أو مسافات.",
+        "payment"
+      );
+      return true;
 
-    await env.DB.prepare(`
-      DELETE FROM services
-      WHERE id = ?
-    `).bind(id).run();
+    case BUTTONS.BANK_MESSAGE:
+      await beginSettingEdit(
+        env,
+        chatId,
+        "bank_message",
+        "أرسل رسالة التحويل الجديدة. يمكنك استخدام {booking_number} و {amount}.",
+        "payment"
+      );
+      return true;
 
-    await sendServicesMenu(env, chatId);
-    return;
-  }
+    case BUTTONS.SERVICE_ADD:
+      await beginState(
+        env,
+        chatId,
+        "add_service",
+        {
+          returnMenu:
+            "services"
+        },
+        "أرسل بيانات الخدمة بهذا الشكل:\n\nالاسم | الوصف | السعر\n\nمثال:\nتدفئة المسبح | تشغيل التدفئة خلال الحجز | 100"
+      );
+      return true;
 
-  if (action.startsWith("service_edit:")) {
-    const id =
-      integer(action.split(":")[1]);
+    case BUTTONS.SERVICE_LIST:
+      await sendServicesList(
+        env,
+        chatId
+      );
+      return true;
 
-    await setState(
-      env,
-      chatId,
-      "edit_service",
-      { id }
-    );
+    case BUTTONS.SERVICE_EDIT:
+      await beginState(
+        env,
+        chatId,
+        "ask_edit_service_id",
+        {
+          returnMenu:
+            "services"
+        },
+        "أرسل رقم الخدمة التي تريد تعديلها."
+      );
+      return true;
 
-    await telegram(
-      env,
-      "sendMessage",
-      {
-        chat_id: chatId,
-        text:
-          "أرسل بيانات الخدمة الجديدة:\n\n" +
-          "الاسم | الوصف | السعر"
-      }
-    );
+    case BUTTONS.SERVICE_TOGGLE:
+      await beginState(
+        env,
+        chatId,
+        "toggle_service",
+        {
+          returnMenu:
+            "services"
+        },
+        "أرسل رقم الخدمة التي تريد إظهارها أو إخفاءها."
+      );
+      return true;
 
-    return;
-  }
+    case BUTTONS.SERVICE_DELETE:
+      await beginState(
+        env,
+        chatId,
+        "delete_service",
+        {
+          returnMenu:
+            "services"
+        },
+        "أرسل رقم الخدمة التي تريد حذفها."
+      );
+      return true;
 
-  if (
-    action === "period_add_season" ||
-    action === "period_add_occasion"
-  ) {
-    const type =
-      action === "period_add_season"
-        ? "season"
-        : "occasion";
+    case BUTTONS.PERIOD_ADD_SEASON:
+      await beginState(
+        env,
+        chatId,
+        "add_period",
+        {
+          type: "season",
+          returnMenu:
+            "periods"
+        },
+        "أرسل بيانات الموسم:\n\nالاسم | تاريخ البداية | تاريخ النهاية | السعر\n\nمثال:\nموسم الصيف | 2026-07-15 | 2026-08-31 | 1000"
+      );
+      return true;
 
-    await setState(
-      env,
-      chatId,
-      "add_period",
-      { type }
-    );
+    case BUTTONS.PERIOD_ADD_OCCASION:
+      await beginState(
+        env,
+        chatId,
+        "add_period",
+        {
+          type:
+            "occasion",
+          returnMenu:
+            "periods"
+        },
+        "أرسل بيانات المناسبة:\n\nالاسم | تاريخ البداية | تاريخ النهاية | السعر"
+      );
+      return true;
 
-    await telegram(
-      env,
-      "sendMessage",
-      {
-        chat_id: chatId,
-        text:
-          "أرسل البيانات بهذا الترتيب:\n\n" +
-          "الاسم | تاريخ البداية | تاريخ النهاية | السعر\n\n" +
-          "مثال:\n" +
-          "موسم الصيف | 2026-07-15 | 2026-08-31 | 1000"
-      }
-    );
+    case BUTTONS.PERIOD_LIST:
+      await sendPeriodsList(
+        env,
+        chatId
+      );
+      return true;
 
-    return;
-  }
+    case BUTTONS.PERIOD_TOGGLE:
+      await beginState(
+        env,
+        chatId,
+        "toggle_period",
+        {
+          returnMenu:
+            "periods"
+        },
+        "أرسل رقم الفترة التي تريد إظهارها أو إخفاءها."
+      );
+      return true;
 
-  if (action.startsWith("period_toggle:")) {
-    const id =
-      integer(action.split(":")[1]);
+    case BUTTONS.PERIOD_DELETE:
+      await beginState(
+        env,
+        chatId,
+        "delete_period",
+        {
+          returnMenu:
+            "periods"
+        },
+        "أرسل رقم الفترة التي تريد حذفها."
+      );
+      return true;
 
-    await env.DB.prepare(`
-      UPDATE periods
-      SET visible = CASE
-        WHEN visible = 1 THEN 0
-        ELSE 1
-      END
-      WHERE id = ?
-    `).bind(id).run();
-
-    await sendPeriodsMenu(env, chatId);
-    return;
-  }
-
-  if (action.startsWith("period_delete:")) {
-    const id =
-      integer(action.split(":")[1]);
-
-    await env.DB.prepare(`
-      DELETE FROM periods
-      WHERE id = ?
-    `).bind(id).run();
-
-    await sendPeriodsMenu(env, chatId);
+    default:
+      return false;
   }
 }
 
 /* =========================
-   قوائم الإدارة
+   لوحات الأزرار الثابتة
 ========================= */
 
-async function sendMainMenu(env, chatId) {
-  await telegram(
-    env,
-    "sendMessage",
-    {
-      chat_id: chatId,
-      text:
-        "⚙️ <b>إدارة موقع الحجز</b>\n\n" +
-        "اختر القسم المطلوب:",
-      parse_mode: "HTML",
-      reply_markup: {
-        inline_keyboard: [
-          [
-            {
-              text: "🏡 نصوص الموقع",
-              callback_data: "site_menu"
-            },
-            {
-              text: "💰 الأسعار",
-              callback_data: "prices_menu"
-            }
-          ],
-          [
-            {
-              text: "🛎 الخدمات",
-              callback_data: "services_menu"
-            },
-            {
-              text: "🎉 المواسم والمناسبات",
-              callback_data: "periods_menu"
-            }
-          ],
-          [
-            {
-              text: "🔐 التأمين المسترد",
-              callback_data: "insurance_menu"
-            },
-            {
-              text: "💳 طرق الدفع",
-              callback_data: "payment_menu"
-            }
-          ]
-        ]
-      }
-    }
-  );
-}
-
-async function sendSiteMenu(env, chatId) {
-  const settings =
-    await getSettings(env);
-
-  await telegram(
-    env,
-    "sendMessage",
-    {
-      chat_id: chatId,
-      text:
-        "🏡 <b>إعدادات الموقع</b>\n\n" +
-        `الحالة: ${enabled(settings.site_enabled) ? "🟢 يعمل" : "🔴 متوقف"}\n` +
-        `العنوان: ${html(settings.site_title)}\n` +
-        `الوصف: ${html(settings.site_subtitle)}`,
-      parse_mode: "HTML",
-      reply_markup: {
-        inline_keyboard: [
-          [
-            {
-              text: "تشغيل/إيقاف الموقع",
-              callback_data: "toggle_site"
-            }
-          ],
-          [
-            {
-              text: "تعديل العنوان",
-              callback_data: "edit:site_title"
-            },
-            {
-              text: "تعديل الوصف",
-              callback_data: "edit:site_subtitle"
-            }
-          ],
-          [
-            {
-              text: "تعديل نص الصيانة",
-              callback_data: "edit:maintenance_message"
-            }
-          ],
-          backButton()
-        ]
-      }
-    }
-  );
-}
-
-async function sendPricesMenu(env, chatId) {
-  const settings =
-    await getSettings(env);
-
-  await telegram(
-    env,
-    "sendMessage",
-    {
-      chat_id: chatId,
-      text:
-        "💰 <b>الأسعار الأساسية</b>\n\n" +
-        `أيام الأسبوع: ${money(settings.weekday_price)}\n` +
-        `الخميس: ${money(settings.thursday_price)}\n` +
-        `الجمعة: ${money(settings.friday_price)}`,
-      parse_mode: "HTML",
-      reply_markup: {
-        inline_keyboard: [
-          [
-            {
-              text: "أيام الأسبوع",
-              callback_data: "edit:weekday_price"
-            }
-          ],
-          [
-            {
-              text: "الخميس",
-              callback_data: "edit:thursday_price"
-            },
-            {
-              text: "الجمعة",
-              callback_data: "edit:friday_price"
-            }
-          ],
-          backButton()
-        ]
-      }
-    }
-  );
-}
-
-async function sendInsuranceMenu(env, chatId) {
-  const settings =
-    await getSettings(env);
-
-  await telegram(
-    env,
-    "sendMessage",
-    {
-      chat_id: chatId,
-      text:
-        "🔐 <b>التأمين المسترد</b>\n\n" +
-        `الحالة: ${enabled(settings.insurance_visible) ? "🟢 ظاهر" : "🔴 مخفي"}\n` +
-        `المبلغ: ${money(settings.insurance_amount)}\n\n` +
-        `<b>${html(settings.insurance_title)}</b>\n` +
-        html(settings.insurance_description),
-      parse_mode: "HTML",
-      reply_markup: {
-        inline_keyboard: [
-          [
-            {
-              text: "إظهار/إخفاء",
-              callback_data: "toggle_insurance"
-            },
-            {
-              text: "تعديل المبلغ",
-              callback_data: "edit:insurance_amount"
-            }
-          ],
-          [
-            {
-              text: "تعديل العنوان",
-              callback_data: "edit:insurance_title"
-            },
-            {
-              text: "تعديل النص",
-              callback_data: "edit:insurance_description"
-            }
-          ],
-          backButton()
-        ]
-      }
-    }
-  );
-}
-
-async function sendPaymentMenu(env, chatId) {
-  const settings =
-    await getSettings(env);
-
-  await telegram(
-    env,
-    "sendMessage",
-    {
-      chat_id: chatId,
-      text:
-        "💳 <b>طرق الدفع</b>\n\n" +
-        `البطاقة: ${enabled(settings.card_visible) ? "🟢 ظاهرة" : "🔴 مخفية"}\n` +
-        `التحويل: ${enabled(settings.bank_visible) ? "🟢 ظاهر" : "🔴 مخفي"}\n\n` +
-        `رابط البطاقة:\n<code>${html(settings.card_url || "غير مضاف")}</code>\n\n` +
-        `بوت الدفع:\n<code>${html(settings.payment_bot_username)}</code>`,
-      parse_mode: "HTML",
-      reply_markup: {
-        inline_keyboard: [
-          [
-            {
-              text: "إظهار/إخفاء البطاقة",
-              callback_data: "toggle_card"
-            },
-            {
-              text: "إظهار/إخفاء التحويل",
-              callback_data: "toggle_bank"
-            }
-          ],
-          [
-            {
-              text: "رابط بوابة الدفع",
-              callback_data: "edit:card_url"
-            }
-          ],
-          [
-            {
-              text: "اسم بوت الدفع",
-              callback_data: "edit:payment_bot_username"
-            }
-          ],
-          [
-            {
-              text: "اسم دفع البطاقة",
-              callback_data: "edit:card_name"
-            },
-            {
-              text: "وصف البطاقة",
-              callback_data: "edit:card_description"
-            }
-          ],
-          [
-            {
-              text: "رقم واتساب التحويل",
-              callback_data: "edit:bank_whatsapp"
-            }
-          ],
-          [
-            {
-              text: "نص رسالة التحويل",
-              callback_data: "edit:bank_message"
-            }
-          ],
-          backButton()
-        ]
-      }
-    }
-  );
-}
-
-async function sendServicesMenu(env, chatId) {
-  const result = await env.DB.prepare(`
-    SELECT
-      id,
-      name,
-      price,
-      visible
-    FROM services
-    ORDER BY sort_order ASC, id ASC
-  `).all();
-
-  const keyboard = [
+function mainKeyboard() {
+  return replyKeyboard([
     [
-      {
-        text: "➕ إضافة خدمة",
-        callback_data: "service_add"
-      }
+      BUTTONS.SITE,
+      BUTTONS.PRICES
+    ],
+    [
+      BUTTONS.SERVICES,
+      BUTTONS.PERIODS
+    ],
+    [
+      BUTTONS.INSURANCE,
+      BUTTONS.PAYMENT
     ]
-  ];
+  ]);
+}
 
-  for (const service of result.results || []) {
-    keyboard.push([
-      {
-        text:
-          `${Number(service.visible) === 1 ? "🟢" : "🔴"} ` +
-          `${service.name} — ${money(service.price)}`,
-        callback_data:
-          `service_toggle:${service.id}`
-      }
-    ]);
+function siteKeyboard() {
+  return replyKeyboard([
+    [
+      BUTTONS.SITE_TOGGLE
+    ],
+    [
+      BUTTONS.SITE_TITLE,
+      BUTTONS.SITE_SUBTITLE
+    ],
+    [
+      BUTTONS.SITE_MAINTENANCE
+    ],
+    [
+      BUTTONS.BACK
+    ]
+  ]);
+}
 
-    keyboard.push([
-      {
-        text: `✏️ تعديل ${service.name}`,
-        callback_data:
-          `service_edit:${service.id}`
-      },
-      {
-        text: "🗑 حذف",
-        callback_data:
-          `service_delete:${service.id}`
-      }
-    ]);
+function pricesKeyboard() {
+  return replyKeyboard([
+    [
+      BUTTONS.WEEKDAY_PRICE
+    ],
+    [
+      BUTTONS.THURSDAY_PRICE,
+      BUTTONS.FRIDAY_PRICE
+    ],
+    [
+      BUTTONS.BACK
+    ]
+  ]);
+}
+
+function insuranceKeyboard() {
+  return replyKeyboard([
+    [
+      BUTTONS.INSURANCE_TOGGLE
+    ],
+    [
+      BUTTONS.INSURANCE_AMOUNT
+    ],
+    [
+      BUTTONS.INSURANCE_TITLE,
+      BUTTONS.INSURANCE_DESCRIPTION
+    ],
+    [
+      BUTTONS.BACK
+    ]
+  ]);
+}
+
+function paymentKeyboard() {
+  return replyKeyboard([
+    [
+      BUTTONS.CARD_TOGGLE,
+      BUTTONS.BANK_TOGGLE
+    ],
+    [
+      BUTTONS.CARD_URL
+    ],
+    [
+      BUTTONS.PAYMENT_BOT
+    ],
+    [
+      BUTTONS.CARD_NAME,
+      BUTTONS.CARD_DESCRIPTION
+    ],
+    [
+      BUTTONS.BANK_NAME,
+      BUTTONS.BANK_DESCRIPTION
+    ],
+    [
+      BUTTONS.BANK_WHATSAPP
+    ],
+    [
+      BUTTONS.BANK_MESSAGE
+    ],
+    [
+      BUTTONS.BACK
+    ]
+  ]);
+}
+
+function servicesKeyboard() {
+  return replyKeyboard([
+    [
+      BUTTONS.SERVICE_ADD,
+      BUTTONS.SERVICE_LIST
+    ],
+    [
+      BUTTONS.SERVICE_EDIT
+    ],
+    [
+      BUTTONS.SERVICE_TOGGLE,
+      BUTTONS.SERVICE_DELETE
+    ],
+    [
+      BUTTONS.BACK
+    ]
+  ]);
+}
+
+function periodsKeyboard() {
+  return replyKeyboard([
+    [
+      BUTTONS.PERIOD_ADD_SEASON,
+      BUTTONS.PERIOD_ADD_OCCASION
+    ],
+    [
+      BUTTONS.PERIOD_LIST
+    ],
+    [
+      BUTTONS.PERIOD_TOGGLE,
+      BUTTONS.PERIOD_DELETE
+    ],
+    [
+      BUTTONS.BACK
+    ]
+  ]);
+}
+
+function cancelKeyboard() {
+  return replyKeyboard([
+    [
+      BUTTONS.CANCEL,
+      BUTTONS.BACK
+    ]
+  ]);
+}
+
+function replyKeyboard(rows) {
+  return {
+    keyboard:
+      rows.map(row =>
+        row.map(text => ({
+          text
+        }))
+      ),
+
+    resize_keyboard:
+      true,
+
+    is_persistent:
+      true,
+
+    one_time_keyboard:
+      false,
+
+    input_field_placeholder:
+      "اختر من الأزرار"
+  };
+}
+
+/* =========================
+   إرسال القوائم
+========================= */
+
+async function sendMainMenu(
+  env,
+  chatId
+) {
+  await sendMessage(
+    env,
+    chatId,
+    "⚙️ <b>إدارة موقع الحجز</b>\n\nاختر القسم المطلوب من الأزرار الموجودة أسفل المحادثة.",
+    mainKeyboard(),
+    "HTML"
+  );
+}
+
+async function sendSiteMenu(
+  env,
+  chatId
+) {
+  const settings =
+    await getSettings(env);
+
+  await sendMessage(
+    env,
+    chatId,
+    "🏡 <b>إعدادات الموقع</b>\n\n" +
+    `الحالة: ${
+      enabled(
+        settings.site_enabled
+      )
+        ? "🟢 يعمل"
+        : "🔴 متوقف"
+    }\n\n` +
+    `<b>العنوان:</b>\n${html(settings.site_title)}\n\n` +
+    `<b>الوصف:</b>\n${html(settings.site_subtitle)}`,
+    siteKeyboard(),
+    "HTML"
+  );
+}
+
+async function sendPricesMenu(
+  env,
+  chatId
+) {
+  const settings =
+    await getSettings(env);
+
+  await sendMessage(
+    env,
+    chatId,
+    "💰 <b>الأسعار الأساسية</b>\n\n" +
+    `أيام الأسبوع: ${money(settings.weekday_price)}\n` +
+    `الخميس: ${money(settings.thursday_price)}\n` +
+    `الجمعة: ${money(settings.friday_price)}`,
+    pricesKeyboard(),
+    "HTML"
+  );
+}
+
+async function sendInsuranceMenu(
+  env,
+  chatId
+) {
+  const settings =
+    await getSettings(env);
+
+  await sendMessage(
+    env,
+    chatId,
+    "🔐 <b>التأمين المسترد</b>\n\n" +
+    `الحالة: ${
+      enabled(
+        settings.insurance_visible
+      )
+        ? "🟢 ظاهر"
+        : "🔴 مخفي"
+    }\n` +
+    `المبلغ: ${money(settings.insurance_amount)}\n\n` +
+    `<b>${html(settings.insurance_title)}</b>\n` +
+    `${html(settings.insurance_description)}`,
+    insuranceKeyboard(),
+    "HTML"
+  );
+}
+
+async function sendPaymentMenu(
+  env,
+  chatId
+) {
+  const settings =
+    await getSettings(env);
+
+  await sendMessage(
+    env,
+    chatId,
+    "💳 <b>طرق الدفع</b>\n\n" +
+    `البطاقة: ${
+      enabled(
+        settings.card_visible
+      )
+        ? "🟢 ظاهرة"
+        : "🔴 مخفية"
+    }\n` +
+    `التحويل: ${
+      enabled(
+        settings.bank_visible
+      )
+        ? "🟢 ظاهر"
+        : "🔴 مخفي"
+    }\n\n` +
+    `<b>رابط البطاقة:</b>\n<code>${html(settings.card_url || "غير مضاف")}</code>\n\n` +
+    `<b>رقم واتساب التحويل:</b>\n<code>${html(settings.bank_whatsapp || "غير مضاف")}</code>\n\n` +
+    `<b>بوت الدفع:</b>\n<code>${html(settings.payment_bot_username || "غير مضاف")}</code>`,
+    paymentKeyboard(),
+    "HTML"
+  );
+}
+
+async function sendServicesMenu(
+  env,
+  chatId
+) {
+  await sendMessage(
+    env,
+    chatId,
+    "🛎 <b>إدارة الخدمات</b>\n\nيمكنك الإضافة أو التعديل أو الإظهار والإخفاء أو الحذف من الأزرار.",
+    servicesKeyboard(),
+    "HTML"
+  );
+}
+
+async function sendPeriodsMenu(
+  env,
+  chatId
+) {
+  await sendMessage(
+    env,
+    chatId,
+    "🎉 <b>المواسم والمناسبات</b>\n\nيمكنك إضافة موسم أو مناسبة والتحكم بالفترات الحالية.",
+    periodsKeyboard(),
+    "HTML"
+  );
+}
+
+async function sendServicesList(
+  env,
+  chatId
+) {
+  const result =
+    await env.DB.prepare(`
+      SELECT
+        id,
+        name,
+        description,
+        price,
+        visible
+      FROM services
+      ORDER BY sort_order ASC, id ASC
+    `).all();
+
+  const services =
+    result.results || [];
+
+  if (!services.length) {
+    await sendMessage(
+      env,
+      chatId,
+      "لا توجد خدمات مضافة.",
+      servicesKeyboard()
+    );
+
+    return;
   }
 
-  keyboard.push(backButton());
+  const lines =
+    services.map(service => {
+      const status =
+        Number(service.visible) === 1
+          ? "🟢"
+          : "🔴";
 
-  await telegram(
+      return (
+        `${status} <b>رقم ${service.id}</b>\n` +
+        `${html(service.name)} — ${money(service.price)}\n` +
+        `${html(service.description || "بدون وصف")}`
+      );
+    });
+
+  await sendMessage(
     env,
-    "sendMessage",
-    {
-      chat_id: chatId,
-      text:
-        "🛎 <b>إدارة الخدمات</b>\n\n" +
-        "اضغط اسم الخدمة لإظهارها أو إخفائها.",
-      parse_mode: "HTML",
-      reply_markup: {
-        inline_keyboard: keyboard
-      }
-    }
+    chatId,
+    lines.join("\n\n"),
+    servicesKeyboard(),
+    "HTML"
   );
 }
 
-async function sendPeriodsMenu(env, chatId) {
-  const result = await env.DB.prepare(`
-    SELECT *
-    FROM periods
-    ORDER BY start_date ASC
-  `).all();
+async function sendPeriodsList(
+  env,
+  chatId
+) {
+  const result =
+    await env.DB.prepare(`
+      SELECT
+        id,
+        type,
+        name,
+        start_date,
+        end_date,
+        price,
+        visible
+      FROM periods
+      ORDER BY start_date ASC
+    `).all();
 
-  const keyboard = [
-    [
-      {
-        text: "➕ إضافة موسم",
-        callback_data: "period_add_season"
-      },
-      {
-        text: "➕ إضافة مناسبة",
-        callback_data: "period_add_occasion"
-      }
-    ]
-  ];
+  const periods =
+    result.results || [];
 
-  for (const period of result.results || []) {
-    keyboard.push([
-      {
-        text:
-          `${Number(period.visible) === 1 ? "🟢" : "🔴"} ` +
-          `${period.name} — ${money(period.price)}`,
-        callback_data:
-          `period_toggle:${period.id}`
-      },
-      {
-        text: "🗑 حذف",
-        callback_data:
-          `period_delete:${period.id}`
-      }
-    ]);
+  if (!periods.length) {
+    await sendMessage(
+      env,
+      chatId,
+      "لا توجد مواسم أو مناسبات مضافة.",
+      periodsKeyboard()
+    );
+
+    return;
   }
 
-  keyboard.push(backButton());
+  const lines =
+    periods.map(period => {
+      const status =
+        Number(period.visible) === 1
+          ? "🟢"
+          : "🔴";
 
-  await telegram(
+      const typeName =
+        period.type === "season"
+          ? "موسم"
+          : "مناسبة";
+
+      return (
+        `${status} <b>رقم ${period.id}</b> — ${typeName}\n` +
+        `${html(period.name)}\n` +
+        `${html(period.start_date)} إلى ${html(period.end_date)}\n` +
+        `${money(period.price)}`
+      );
+    });
+
+  await sendMessage(
     env,
-    "sendMessage",
-    {
-      chat_id: chatId,
-      text:
-        "🎉 <b>المواسم والمناسبات</b>\n\n" +
-        "اضغط الاسم لتشغيله أو إخفائه.",
-      parse_mode: "HTML",
-      reply_markup: {
-        inline_keyboard: keyboard
-      }
-    }
+    chatId,
+    lines.join("\n\n"),
+    periodsKeyboard(),
+    "HTML"
   );
 }
 
 /* =========================
-   استقبال تعديلات الإدارة
+   بدء عمليات الإدخال
+========================= */
+
+async function beginSettingEdit(
+  env,
+  chatId,
+  key,
+  prompt,
+  returnMenu
+) {
+  await setState(
+    env,
+    chatId,
+    "edit_setting",
+    {
+      key,
+      returnMenu
+    }
+  );
+
+  await sendMessage(
+    env,
+    chatId,
+    prompt,
+    cancelKeyboard()
+  );
+}
+
+async function beginState(
+  env,
+  chatId,
+  state,
+  payload,
+  prompt
+) {
+  await setState(
+    env,
+    chatId,
+    state,
+    payload
+  );
+
+  await sendMessage(
+    env,
+    chatId,
+    prompt,
+    cancelKeyboard()
+  );
+}
+
+/* =========================
+   معالجة القيم المدخلة
 ========================= */
 
 async function processState(
@@ -1433,57 +2052,373 @@ async function processState(
   text,
   state
 ) {
-  if (text === "/cancel") {
-    await clearState(env, chatId);
-    await sendMainMenu(env, chatId);
+  if (!text) {
+    await sendMessage(
+      env,
+      chatId,
+      "أرسل قيمة صحيحة.",
+      cancelKeyboard()
+    );
     return;
   }
 
-  if (state.state === "edit_setting") {
-    const key =
-      state.payload?.key;
+  if (
+    state.state ===
+      "edit_setting"
+  ) {
+    await processSettingEdit(
+      env,
+      chatId,
+      text,
+      state
+    );
+    return;
+  }
 
-    const numericKeys = new Set([
+  if (
+    state.state ===
+      "add_service"
+  ) {
+    await processAddService(
+      env,
+      chatId,
+      text,
+      state
+    );
+    return;
+  }
+
+  if (
+    state.state ===
+      "ask_edit_service_id"
+  ) {
+    const id =
+      integer(text);
+
+    const service =
+      await env.DB.prepare(`
+        SELECT *
+        FROM services
+        WHERE id = ?
+        LIMIT 1
+      `).bind(id).first();
+
+    if (!service) {
+      await sendMessage(
+        env,
+        chatId,
+        "لم يتم العثور على هذه الخدمة. أرسل رقم خدمة صحيحًا.",
+        cancelKeyboard()
+      );
+      return;
+    }
+
+    await setState(
+      env,
+      chatId,
+      "edit_service_data",
+      {
+        id,
+        returnMenu:
+          "services"
+      }
+    );
+
+    await sendMessage(
+      env,
+      chatId,
+      "أرسل البيانات الجديدة بهذا الشكل:\n\nالاسم | الوصف | السعر",
+      cancelKeyboard()
+    );
+
+    return;
+  }
+
+  if (
+    state.state ===
+      "edit_service_data"
+  ) {
+    await processEditService(
+      env,
+      chatId,
+      text,
+      state
+    );
+    return;
+  }
+
+  if (
+    state.state ===
+      "toggle_service"
+  ) {
+    const id =
+      integer(text);
+
+    const result =
+      await env.DB.prepare(`
+        UPDATE services
+        SET
+          visible = CASE
+            WHEN visible = 1 THEN 0
+            ELSE 1
+          END,
+          updated_at =
+            CURRENT_TIMESTAMP
+        WHERE id = ?
+      `).bind(id).run();
+
+    if (
+      Number(
+        result.meta?.changes || 0
+      ) === 0
+    ) {
+      await sendMessage(
+        env,
+        chatId,
+        "لم يتم العثور على الخدمة.",
+        cancelKeyboard()
+      );
+      return;
+    }
+
+    await clearState(
+      env,
+      chatId
+    );
+
+    await sendMessage(
+      env,
+      chatId,
+      "✅ تم تغيير حالة الخدمة.",
+      servicesKeyboard()
+    );
+
+    return;
+  }
+
+  if (
+    state.state ===
+      "delete_service"
+  ) {
+    const id =
+      integer(text);
+
+    const result =
+      await env.DB.prepare(`
+        DELETE FROM services
+        WHERE id = ?
+      `).bind(id).run();
+
+    if (
+      Number(
+        result.meta?.changes || 0
+      ) === 0
+    ) {
+      await sendMessage(
+        env,
+        chatId,
+        "لم يتم العثور على الخدمة.",
+        cancelKeyboard()
+      );
+      return;
+    }
+
+    await clearState(
+      env,
+      chatId
+    );
+
+    await sendMessage(
+      env,
+      chatId,
+      "✅ تم حذف الخدمة.",
+      servicesKeyboard()
+    );
+
+    return;
+  }
+
+  if (
+    state.state ===
+      "add_period"
+  ) {
+    await processAddPeriod(
+      env,
+      chatId,
+      text,
+      state
+    );
+    return;
+  }
+
+  if (
+    state.state ===
+      "toggle_period"
+  ) {
+    const id =
+      integer(text);
+
+    const result =
+      await env.DB.prepare(`
+        UPDATE periods
+        SET visible = CASE
+          WHEN visible = 1 THEN 0
+          ELSE 1
+        END
+        WHERE id = ?
+      `).bind(id).run();
+
+    if (
+      Number(
+        result.meta?.changes || 0
+      ) === 0
+    ) {
+      await sendMessage(
+        env,
+        chatId,
+        "لم يتم العثور على الفترة.",
+        cancelKeyboard()
+      );
+      return;
+    }
+
+    await clearState(
+      env,
+      chatId
+    );
+
+    await sendMessage(
+      env,
+      chatId,
+      "✅ تم تغيير حالة الفترة.",
+      periodsKeyboard()
+    );
+
+    return;
+  }
+
+  if (
+    state.state ===
+      "delete_period"
+  ) {
+    const id =
+      integer(text);
+
+    const result =
+      await env.DB.prepare(`
+        DELETE FROM periods
+        WHERE id = ?
+      `).bind(id).run();
+
+    if (
+      Number(
+        result.meta?.changes || 0
+      ) === 0
+    ) {
+      await sendMessage(
+        env,
+        chatId,
+        "لم يتم العثور على الفترة.",
+        cancelKeyboard()
+      );
+      return;
+    }
+
+    await clearState(
+      env,
+      chatId
+    );
+
+    await sendMessage(
+      env,
+      chatId,
+      "✅ تم حذف الفترة.",
+      periodsKeyboard()
+    );
+  }
+}
+
+async function processSettingEdit(
+  env,
+  chatId,
+  text,
+  state
+) {
+  const key =
+    state.payload?.key;
+
+  const numericKeys =
+    new Set([
       "weekday_price",
       "thursday_price",
       "friday_price",
       "insurance_amount"
     ]);
 
-    if (numericKeys.has(key)) {
-      const value = Number(text);
-
-      if (!Number.isFinite(value) || value < 0) {
-        await sendText(
-          env,
-          chatId,
-          "❌ أرسل رقمًا صحيحًا فقط."
-        );
-        return;
-      }
-    }
+  if (
+    numericKeys.has(key)
+  ) {
+    const value =
+      Number(text);
 
     if (
-      key === "card_url" &&
-      text &&
-      !/^https:\/\//i.test(text)
+      !Number.isFinite(value) ||
+      value < 0
     ) {
-      await sendText(
+      await sendMessage(
         env,
         chatId,
-        "❌ الرابط يجب أن يبدأ بـ https://"
+        "أرسل رقمًا صحيحًا فقط.",
+        cancelKeyboard()
       );
       return;
     }
+  }
+
+  if (
+    key === "card_url" &&
+    text &&
+    !/^https:\/\//i.test(text)
+  ) {
+    await sendMessage(
+      env,
+      chatId,
+      "الرابط يجب أن يبدأ بـ https://",
+      cancelKeyboard()
+    );
+    return;
+  }
+
+  if (
+    key ===
+      "payment_bot_username" &&
+    text &&
+    !text.startsWith("@")
+  ) {
+    await sendMessage(
+      env,
+      chatId,
+      "اسم البوت يجب أن يبدأ بعلامة @",
+      cancelKeyboard()
+    );
+    return;
+  }
+
+  if (
+    key === "bank_whatsapp"
+  ) {
+    const normalized =
+      text.replace(/\D/g, "");
 
     if (
-      key === "payment_bot_username" &&
-      !text.startsWith("@")
+      normalized.length < 8 ||
+      normalized.length > 18
     ) {
-      await sendText(
+      await sendMessage(
         env,
         chatId,
-        "❌ اسم البوت يجب أن يبدأ بعلامة @"
+        "أرسل رقم واتساب صحيحًا مع رمز الدولة وبدون علامة +.",
+        cancelKeyboard()
       );
       return;
     }
@@ -1491,143 +2426,362 @@ async function processState(
     await saveSetting(
       env,
       key,
+      normalized
+    );
+  } else {
+    await saveSetting(
+      env,
+      key,
       text
     );
+  }
 
-    await clearState(env, chatId);
+  await clearState(
+    env,
+    chatId
+  );
 
-    await sendText(
+  await sendMessage(
+    env,
+    chatId,
+    "✅ تم حفظ التعديل.",
+    menuKeyboard(
+      state.payload
+        ?.returnMenu
+    )
+  );
+
+  await returnToMenu(
+    env,
+    chatId,
+    state.payload
+      ?.returnMenu
+  );
+}
+
+async function processAddService(
+  env,
+  chatId,
+  text,
+  state
+) {
+  const parts =
+    text
+      .split("|")
+      .map(
+        item =>
+          item.trim()
+      );
+
+  if (
+    parts.length < 3
+  ) {
+    await sendMessage(
       env,
       chatId,
-      "✅ تم حفظ التعديل."
+      "الصيغة غير صحيحة.\n\nالاسم | الوصف | السعر",
+      cancelKeyboard()
     );
+    return;
+  }
 
-    await sendMainMenu(env, chatId);
+  const price =
+    Number(parts[2]);
+
+  if (
+    !Number.isFinite(price) ||
+    price < 0
+  ) {
+    await sendMessage(
+      env,
+      chatId,
+      "السعر غير صحيح.",
+      cancelKeyboard()
+    );
+    return;
+  }
+
+  const order =
+    await env.DB.prepare(`
+      SELECT
+        COALESCE(
+          MAX(sort_order),
+          0
+        ) + 1 AS next_order
+      FROM services
+    `).first();
+
+  await env.DB.prepare(`
+    INSERT INTO services (
+      name,
+      description,
+      price,
+      visible,
+      sort_order
+    )
+    VALUES (?, ?, ?, 1, ?)
+  `).bind(
+    parts[0],
+    parts[1],
+    price,
+    Number(
+      order?.next_order || 1
+    )
+  ).run();
+
+  await clearState(
+    env,
+    chatId
+  );
+
+  await sendMessage(
+    env,
+    chatId,
+    "✅ تمت إضافة الخدمة.",
+    servicesKeyboard()
+  );
+}
+
+async function processEditService(
+  env,
+  chatId,
+  text,
+  state
+) {
+  const parts =
+    text
+      .split("|")
+      .map(
+        item =>
+          item.trim()
+      );
+
+  if (
+    parts.length < 3
+  ) {
+    await sendMessage(
+      env,
+      chatId,
+      "الصيغة غير صحيحة.\n\nالاسم | الوصف | السعر",
+      cancelKeyboard()
+    );
+    return;
+  }
+
+  const price =
+    Number(parts[2]);
+
+  if (
+    !Number.isFinite(price) ||
+    price < 0
+  ) {
+    await sendMessage(
+      env,
+      chatId,
+      "السعر غير صحيح.",
+      cancelKeyboard()
+    );
+    return;
+  }
+
+  await env.DB.prepare(`
+    UPDATE services
+    SET
+      name = ?,
+      description = ?,
+      price = ?,
+      updated_at =
+        CURRENT_TIMESTAMP
+    WHERE id = ?
+  `).bind(
+    parts[0],
+    parts[1],
+    price,
+    state.payload.id
+  ).run();
+
+  await clearState(
+    env,
+    chatId
+  );
+
+  await sendMessage(
+    env,
+    chatId,
+    "✅ تم تعديل الخدمة.",
+    servicesKeyboard()
+  );
+}
+
+async function processAddPeriod(
+  env,
+  chatId,
+  text,
+  state
+) {
+  const parts =
+    text
+      .split("|")
+      .map(
+        item =>
+          item.trim()
+      );
+
+  if (
+    parts.length < 4
+  ) {
+    await sendMessage(
+      env,
+      chatId,
+      "الصيغة غير صحيحة.\n\nالاسم | البداية | النهاية | السعر",
+      cancelKeyboard()
+    );
+    return;
+  }
+
+  const price =
+    Number(parts[3]);
+
+  if (
+    !isDate(parts[1]) ||
+    !isDate(parts[2]) ||
+    !Number.isFinite(price) ||
+    price < 0
+  ) {
+    await sendMessage(
+      env,
+      chatId,
+      "تأكد من كتابة التواريخ بهذا الشكل 2026-07-15 ومن كتابة سعر صحيح.",
+      cancelKeyboard()
+    );
     return;
   }
 
   if (
-    state.state === "add_service" ||
-    state.state === "edit_service"
+    parts[2] < parts[1]
   ) {
-    const parts =
-      text.split("|").map(item => item.trim());
-
-    if (parts.length < 3) {
-      await sendText(
-        env,
-        chatId,
-        "❌ الصيغة غير صحيحة:\nالاسم | الوصف | السعر"
-      );
-      return;
-    }
-
-    const price =
-      Number(parts[2]);
-
-    if (!Number.isFinite(price) || price < 0) {
-      await sendText(
-        env,
-        chatId,
-        "❌ السعر غير صحيح."
-      );
-      return;
-    }
-
-    if (state.state === "add_service") {
-      const order = await env.DB.prepare(`
-        SELECT COALESCE(MAX(sort_order), 0) + 1 AS next_order
-        FROM services
-      `).first();
-
-      await env.DB.prepare(`
-        INSERT INTO services (
-          name,
-          description,
-          price,
-          visible,
-          sort_order
-        )
-        VALUES (?, ?, ?, 1, ?)
-      `).bind(
-        parts[0],
-        parts[1],
-        price,
-        Number(order?.next_order || 1)
-      ).run();
-    } else {
-      await env.DB.prepare(`
-        UPDATE services
-        SET
-          name = ?,
-          description = ?,
-          price = ?,
-          updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
-      `).bind(
-        parts[0],
-        parts[1],
-        price,
-        state.payload.id
-      ).run();
-    }
-
-    await clearState(env, chatId);
-    await sendText(env, chatId, "✅ تم حفظ الخدمة.");
-    await sendServicesMenu(env, chatId);
+    await sendMessage(
+      env,
+      chatId,
+      "تاريخ النهاية يجب أن يكون بعد تاريخ البداية.",
+      cancelKeyboard()
+    );
     return;
   }
 
-  if (state.state === "add_period") {
-    const parts =
-      text.split("|").map(item => item.trim());
+  await env.DB.prepare(`
+    INSERT INTO periods (
+      type,
+      name,
+      start_date,
+      end_date,
+      price,
+      visible
+    )
+    VALUES (?, ?, ?, ?, ?, 1)
+  `).bind(
+    state.payload.type,
+    parts[0],
+    parts[1],
+    parts[2],
+    price
+  ).run();
 
-    if (parts.length < 4) {
-      await sendText(
+  await clearState(
+    env,
+    chatId
+  );
+
+  await sendMessage(
+    env,
+    chatId,
+    "✅ تمت إضافة الفترة.",
+    periodsKeyboard()
+  );
+}
+
+/* =========================
+   العودة إلى القوائم
+========================= */
+
+async function returnToMenu(
+  env,
+  chatId,
+  menu
+) {
+  switch (menu) {
+    case "site":
+      await sendSiteMenu(
         env,
-        chatId,
-        "❌ الصيغة:\nالاسم | البداية | النهاية | السعر"
+        chatId
       );
       return;
-    }
 
-    const price =
-      Number(parts[3]);
-
-    if (
-      !/^\d{4}-\d{2}-\d{2}$/.test(parts[1]) ||
-      !/^\d{4}-\d{2}-\d{2}$/.test(parts[2]) ||
-      !Number.isFinite(price)
-    ) {
-      await sendText(
+    case "prices":
+      await sendPricesMenu(
         env,
-        chatId,
-        "❌ تأكد من التواريخ والسعر."
+        chatId
       );
       return;
-    }
 
-    await env.DB.prepare(`
-      INSERT INTO periods (
-        type,
-        name,
-        start_date,
-        end_date,
-        price,
-        visible
-      )
-      VALUES (?, ?, ?, ?, ?, 1)
-    `).bind(
-      state.payload.type,
-      parts[0],
-      parts[1],
-      parts[2],
-      price
-    ).run();
+    case "insurance":
+      await sendInsuranceMenu(
+        env,
+        chatId
+      );
+      return;
 
-    await clearState(env, chatId);
-    await sendText(env, chatId, "✅ تمت إضافة الفترة.");
-    await sendPeriodsMenu(env, chatId);
+    case "payment":
+      await sendPaymentMenu(
+        env,
+        chatId
+      );
+      return;
+
+    case "services":
+      await sendServicesMenu(
+        env,
+        chatId
+      );
+      return;
+
+    case "periods":
+      await sendPeriodsMenu(
+        env,
+        chatId
+      );
+      return;
+
+    default:
+      await sendMainMenu(
+        env,
+        chatId
+      );
+  }
+}
+
+function menuKeyboard(menu) {
+  switch (menu) {
+    case "site":
+      return siteKeyboard();
+
+    case "prices":
+      return pricesKeyboard();
+
+    case "insurance":
+      return insuranceKeyboard();
+
+    case "payment":
+      return paymentKeyboard();
+
+    case "services":
+      return servicesKeyboard();
+
+    case "periods":
+      return periodsKeyboard();
+
+    default:
+      return mainKeyboard();
   }
 }
 
@@ -1648,26 +2802,45 @@ async function setState(
       payload,
       updated_at
     )
-    VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+    VALUES (
+      ?,
+      ?,
+      ?,
+      CURRENT_TIMESTAMP
+    )
+
     ON CONFLICT(chat_id)
     DO UPDATE SET
-      state = excluded.state,
-      payload = excluded.payload,
-      updated_at = CURRENT_TIMESTAMP
+      state =
+        excluded.state,
+      payload =
+        excluded.payload,
+      updated_at =
+        CURRENT_TIMESTAMP
   `).bind(
     chatId,
     state,
-    JSON.stringify(payload || {})
+    JSON.stringify(
+      payload || {}
+    )
   ).run();
 }
 
-async function getState(env, chatId) {
-  const row = await env.DB.prepare(`
-    SELECT state, payload
-    FROM bot_states
-    WHERE chat_id = ?
-    LIMIT 1
-  `).bind(chatId).first();
+async function getState(
+  env,
+  chatId
+) {
+  const row =
+    await env.DB.prepare(`
+      SELECT
+        state,
+        payload
+      FROM bot_states
+      WHERE chat_id = ?
+      LIMIT 1
+    `).bind(
+      chatId
+    ).first();
 
   if (!row) {
     return null;
@@ -1676,32 +2849,46 @@ async function getState(env, chatId) {
   let payload = {};
 
   try {
-    payload = JSON.parse(row.payload || "{}");
+    payload =
+      JSON.parse(
+        row.payload || "{}"
+      );
   } catch {
     payload = {};
   }
 
   return {
-    state: row.state,
+    state:
+      row.state,
     payload
   };
 }
 
-async function clearState(env, chatId) {
+async function clearState(
+  env,
+  chatId
+) {
   await env.DB.prepare(`
     DELETE FROM bot_states
     WHERE chat_id = ?
-  `).bind(chatId).run();
+  `).bind(
+    chatId
+  ).run();
 }
 
-async function toggleSetting(env, key) {
+async function toggleSetting(
+  env,
+  key
+) {
   const settings =
     await getSettings(env);
 
   await saveSetting(
     env,
     key,
-    enabled(settings[key]) ? "0" : "1"
+    enabled(settings[key])
+      ? "0"
+      : "1"
   );
 }
 
@@ -1714,86 +2901,72 @@ async function telegram(
   method,
   payload
 ) {
-  if (!env.ADMIN_BOT_TOKEN) {
+  const response =
+    await fetch(
+      `https://api.telegram.org/bot${env.ADMIN_BOT_TOKEN}/${method}`,
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json"
+        },
+
+        body:
+          JSON.stringify(
+            payload
+          )
+      }
+    );
+
+  const result =
+    await response.json();
+
+  if (!result.ok) {
     throw new Error(
-      "ADMIN_BOT_TOKEN is missing"
+      result.description ||
+      `Telegram ${method} failed`
     );
   }
 
-  const controller =
-    new AbortController();
-
-  const timeout =
-    setTimeout(
-      () => controller.abort(),
-      15000
-    );
-
-  try {
-    const response =
-      await fetch(
-        `https://api.telegram.org/bot${env.ADMIN_BOT_TOKEN}/${method}`,
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json; charset=UTF-8"
-          },
-
-          body:
-            JSON.stringify(payload),
-
-          signal:
-            controller.signal
-        }
-      );
-
-    let result;
-
-    try {
-      result =
-        await response.json();
-    } catch {
-      throw new Error(
-        `Telegram returned invalid response for ${method}`
-      );
-    }
-
-    if (
-      !response.ok ||
-      !result.ok
-    ) {
-      throw new Error(
-        result.description ||
-        `Telegram ${method} failed`
-      );
-    }
-
-    return result;
-  } finally {
-    clearTimeout(timeout);
-  }
+  return result;
 }
 
-async function sendText(
+async function sendMessage(
   env,
   chatId,
-  text
+  text,
+  replyMarkup,
+  parseMode
 ) {
+  const payload = {
+    chat_id:
+      chatId,
+
+    text,
+
+    reply_markup:
+      replyMarkup
+  };
+
+  if (parseMode) {
+    payload.parse_mode =
+      parseMode;
+  }
+
   return telegram(
     env,
     "sendMessage",
-    {
-      chat_id: chatId,
-      text
-    }
+    payload
   );
 }
 
-async function webhookSecret(token) {
+async function webhookSecret(
+  token
+) {
   const bytes =
-    new TextEncoder().encode(token);
+    new TextEncoder()
+      .encode(token);
 
   const digest =
     await crypto.subtle.digest(
@@ -1801,24 +2974,35 @@ async function webhookSecret(token) {
       bytes
     );
 
-  return [...new Uint8Array(digest)]
-    .map(value =>
-      value.toString(16).padStart(2, "0")
+  return [
+    ...new Uint8Array(
+      digest
+    )
+  ]
+    .map(
+      value =>
+        value
+          .toString(16)
+          .padStart(2, "0")
     )
     .join("")
     .slice(0, 64);
 }
 
 /* =========================
-   أدوات
+   الأدوات
 ========================= */
 
-function json(data, status = 200) {
+function json(
+  data,
+  status = 200
+) {
   return new Response(
     JSON.stringify(data),
     {
       status,
-      headers: JSON_HEADERS
+      headers:
+        JSON_HEADERS
     }
   );
 }
@@ -1828,37 +3012,56 @@ function enabled(value) {
 }
 
 function number(value) {
-  const result = Number(value);
-  return Number.isFinite(result) ? result : 0;
+  const result =
+    Number(value);
+
+  return Number.isFinite(result)
+    ? result
+    : 0;
 }
 
 function integer(value) {
-  const result = Number.parseInt(value, 10);
-  return Number.isFinite(result) ? result : 0;
+  const result =
+    Number.parseInt(
+      String(value),
+      10
+    );
+
+  return Number.isFinite(result)
+    ? result
+    : 0;
 }
 
-function clean(value, length = 1000) {
-  return String(value ?? "")
+function clean(
+  value,
+  length = 1000
+) {
+  return String(
+    value ?? ""
+  )
     .trim()
     .slice(0, length);
 }
 
 function money(value) {
-  return `${number(value).toLocaleString("en-US")} ريال`;
+  return (
+    `${number(value)
+      .toLocaleString("en-US")} ريال`
+  );
 }
 
 function html(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;");
+  return String(
+    value ?? ""
+  )
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
-function backButton() {
-  return [
-    {
-      text: "🔙 رجوع",
-      callback_data: "main"
-    }
-  ];
-    }
+function isDate(value) {
+  return /^\d{4}-\d{2}-\d{2}$/
+    .test(
+      String(value)
+    );
+}
